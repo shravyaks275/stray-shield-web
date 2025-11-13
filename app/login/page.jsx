@@ -78,14 +78,14 @@ export default function Login() {
             <div className="mb-6">
               <label className="text-sm font-medium text-foreground mb-3 block">I am a:</label>
               <div className="flex gap-4">
-                {["citizen", "ngo"].map((type) => (
+                {["citizen", "NGO"].map((type) => (
                   <button
                     key={type}
                     onClick={() => setUserType(type)}
                     className={`flex-1 py-2 px-4 rounded-lg border-2 transition-colors capitalize ${
                       userType === type
-                        ? "border-orange-500 bg-orange-50 text-orange-700"
-                        : "border-border text-foreground hover:border-orange-300"
+                        ? "border-blue-500 bg-blue-50 text-blue-700"
+                        : "border-border text-foreground hover:border-blue-300"
                     }`}
                   >
                     {type}
@@ -141,7 +141,7 @@ export default function Login() {
 
             <p className="text-center text-sm text-muted-foreground mt-6">
               Don't have an account?{" "}
-              <Link href="/signup" className="text-orange-500 hover:text-orange-600 font-medium">
+              <Link href="/signup" className="text-blue-500 hover:text-blue-600 font-medium">
                 Sign up
               </Link>
             </p>

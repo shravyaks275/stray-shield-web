@@ -129,14 +129,14 @@ export default function Signup() {
             <div className="mb-6">
               <label className="text-sm font-medium text-foreground mb-3 block">I am a:</label>
               <div className="flex gap-4">
-                {["citizen", "ngo"].map((type) => (
+                {["citizen", "NGO"].map((type) => (
                   <button
                     key={type}
                     onClick={() => setFormData((prev) => ({ ...prev, userType: type }))}
                     className={`flex-1 py-2 px-4 rounded-lg border-2 transition-colors capitalize ${
                       formData.userType === type
-                        ? "border-orange-500 bg-orange-50 text-orange-700"
-                        : "border-border text-foreground hover:border-orange-300"
+                        ? "border-blue-500 bg-blue-50 text-blue-700"
+                        : "border-border text-foreground hover:border-blue-300"
                     }`}
                   >
                     {type}
@@ -261,7 +261,7 @@ export default function Signup() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-2 px-4 bg-orange-500 text-white rounded-lg hover:bg-orange-600 disabled:bg-gray-400 transition-colors font-medium"
+                className="w-full py-2 px-4 bg-blue-500 text-white rounded-lg hover:bg-orange-600 disabled:bg-gray-400 transition-colors font-medium"
               >
                 {loading ? "Creating Account..." : "Create Account"}
               </button>
@@ -269,7 +269,7 @@ export default function Signup() {
 
             <p className="text-center text-sm text-muted-foreground mt-6">
               Already have an account?{" "}
-              <Link href="/login" className="text-orange-500 hover:text-orange-600 font-medium">
+              <Link href="/login" className="text-blue-500 hover:text-blue-600 font-medium">
                 Sign in
               </Link>
             </p>
