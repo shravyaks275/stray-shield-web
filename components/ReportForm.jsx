@@ -1,9 +1,9 @@
 "use client"
 
 import { useState } from "react"
-import { useRouter } from "next/navigation"
-import { apiCall } from "@/utils/api"
-import { AlertCircle, CheckCircle, Upload } from "lucide-react"
+import { useRouter } from 'next/navigation'
+import { createReport } from "@/utils/api"
+import { AlertCircle, CheckCircle, Upload } from 'lucide-react'
 
 export default function ReportForm() {
   const router = useRouter()
@@ -63,32 +63,18 @@ export default function ReportForm() {
     setError("")
 
     try {
-      let imageUrl = ""
-      if (image) {
-        const formDataImage = new FormData()
-        formDataImage.append("file", image)
-        const uploadResponse = await fetch("/api/upload", {
-          method: "POST",
-          body: formDataImage,
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        })
-        if (!uploadResponse.ok) throw new Error("Image upload failed")
-        const uploadData = await uploadResponse.json()
-        imageUrl = uploadData.imageUrl
-      }
-
       const reportData = {
-        ...formData,
-        imageUrl,
-        userId: localStorage.getItem("userId"),
+        location: formData.location,
+        latitude: formData.latitude || undefined,
+        longitude: formData.longitude || undefined,
+        description: formData.description,
+        contactName: formData.contactName,
+        contactPhone: formData.contactPhone,
+        contactEmail: formData.contactEmail,
+        imageUrl: imagePreview || undefined,
       }
 
-      const result = await apiCall("/api/report", {
-        method: "POST",
-        body: JSON.stringify(reportData),
-      })
+      const result = await createReport(reportData)
 
       setSuccess("Report submitted successfully! Thank you for helping.")
       setFormData({
@@ -108,6 +94,7 @@ export default function ReportForm() {
       }, 2000)
     } catch (err) {
       setError(err.message || "Failed to submit report. Please try again.")
+      console.error('[v0] Report submission error:', err)
     } finally {
       setLoading(false)
     }
@@ -139,7 +126,7 @@ export default function ReportForm() {
           onChange={handleChange}
           placeholder="e.g., Near Central Park, Main Street"
           required
-          className="w-full px-4 py-2 rounded-lg border border-border bg-background text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-orange-500"
+          className="w-full px-4 py-2 rounded-lg border border-border bg-background text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
       </div>
 
@@ -154,7 +141,7 @@ export default function ReportForm() {
             onChange={handleChange}
             placeholder="40.7128"
             step="0.0001"
-            className="w-full px-4 py-2 rounded-lg border border-border bg-background text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-orange-500"
+            className="w-full px-4 py-2 rounded-lg border border-border bg-background text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
         <div>
@@ -166,7 +153,7 @@ export default function ReportForm() {
             onChange={handleChange}
             placeholder="-74.0060"
             step="0.0001"
-            className="w-full px-4 py-2 rounded-lg border border-border bg-background text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-orange-500"
+            className="w-full px-4 py-2 rounded-lg border border-border bg-background text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
       </div>
@@ -181,14 +168,14 @@ export default function ReportForm() {
           placeholder="Describe the dog's appearance, behavior, and current condition..."
           required
           rows="5"
-          className="w-full px-4 py-2 rounded-lg border border-border bg-background text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-orange-500 resize-none"
+          className="w-full px-4 py-2 rounded-lg border border-border bg-background text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
         />
       </div>
 
       {/* Image Upload */}
       <div>
         <label className="text-sm font-medium text-foreground mb-2 block">Upload Image</label>
-        <div className="border-2 border-dashed border-border rounded-lg p-6 text-center hover:border-orange-500 transition-colors cursor-pointer">
+        <div className="border-2 border-dashed border-border rounded-lg p-6 text-center hover:border-blue-500 transition-colors cursor-pointer">
           <input type="file" accept="image/*" onChange={handleImageChange} className="hidden" id="image-input" />
           <label htmlFor="image-input" className="cursor-pointer">
             {imagePreview ? (
@@ -202,7 +189,7 @@ export default function ReportForm() {
               </div>
             ) : (
               <div className="flex flex-col items-center gap-2">
-                <Upload className="w-8 h-8 text-orange-500 mx-auto" />
+                <Upload className="w-8 h-8 text-blue-500 mx-auto" />
                 <p className="text-sm text-foreground">Click to upload image</p>
                 <p className="text-xs text-muted-foreground">PNG, JPG, GIF up to 10MB</p>
               </div>
@@ -223,7 +210,7 @@ export default function ReportForm() {
             value={formData.contactName}
             onChange={handleChange}
             placeholder="Your name"
-            className="w-full px-4 py-2 rounded-lg border border-border bg-background text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-orange-500"
+            className="w-full px-4 py-2 rounded-lg border border-border bg-background text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
 
@@ -236,7 +223,7 @@ export default function ReportForm() {
             onChange={handleChange}
             placeholder="+1 (555) 000-0000"
             required
-            className="w-full px-4 py-2 rounded-lg border border-border bg-background text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-orange-500"
+            className="w-full px-4 py-2 rounded-lg border border-border bg-background text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
 
@@ -248,7 +235,7 @@ export default function ReportForm() {
             value={formData.contactEmail}
             onChange={handleChange}
             placeholder="your@email.com"
-            className="w-full px-4 py-2 rounded-lg border border-border bg-background text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-orange-500"
+            className="w-full px-4 py-2 rounded-lg border border-border bg-background text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
       </div>
@@ -256,7 +243,7 @@ export default function ReportForm() {
       <button
         type="submit"
         disabled={loading}
-        className="w-full py-3 px-4 bg-orange-500 text-white rounded-lg hover:bg-orange-600 disabled:bg-gray-400 transition-colors font-medium text-lg"
+        className="w-full py-3 px-4 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:bg-gray-400 transition-colors font-medium text-lg"
       >
         {loading ? "Submitting Report..." : "Submit Report"}
       </button>

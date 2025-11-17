@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { MapPin, Phone, Mail, User, Calendar } from "lucide-react"
+import { MapPin, Phone, Mail, User, Calendar } from 'lucide-react'
 
 export default function ReportCard({ report, onUpdateStatus }) {
   const [updating, setUpdating] = useState(false)
@@ -41,7 +41,7 @@ export default function ReportCard({ report, onUpdateStatus }) {
 
       {/* Location */}
       <div className="flex items-start gap-3">
-        <MapPin className="w-5 h-5 text-orange-500 mt-0.5 flex-shrink-0" />
+        <MapPin className="w-5 h-5 text-blue-500 mt-0.5 flex-shrink-0" />
         <div>
           <p className="font-semibold text-foreground">{report.location}</p>
           {report.latitude && report.longitude && (
@@ -67,14 +67,14 @@ export default function ReportCard({ report, onUpdateStatus }) {
         )}
         <div className="flex items-center gap-3">
           <Phone className="w-4 h-4 text-muted-foreground" />
-          <a href={`tel:${report.contactPhone}`} className="text-sm text-orange-500 hover:text-orange-600">
+          <a href={`tel:${report.contactPhone}`} className="text-sm text-blue-500 hover:text-blue-600">
             {report.contactPhone}
           </a>
         </div>
         {report.contactEmail && (
           <div className="flex items-center gap-3">
             <Mail className="w-4 h-4 text-muted-foreground" />
-            <a href={`mailto:${report.contactEmail}`} className="text-sm text-orange-500 hover:text-orange-600">
+            <a href={`mailto:${report.contactEmail}`} className="text-sm text-blue-500 hover:text-blue-600">
               {report.contactEmail}
             </a>
           </div>
@@ -97,7 +97,7 @@ export default function ReportCard({ report, onUpdateStatus }) {
             onClick={() => handleStatusChange(status)}
             disabled={updating || report.status === status}
             className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-colors capitalize disabled:opacity-50 disabled:cursor-not-allowed ${
-              report.status === status ? "bg-orange-500 text-white" : "bg-muted text-foreground hover:bg-border"
+              report.status === status ? "bg-blue-500 text-white" : "bg-muted text-foreground hover:bg-border"
             }`}
           >
             {status.replace("_", " ")}
