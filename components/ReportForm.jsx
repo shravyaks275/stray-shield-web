@@ -1,9 +1,9 @@
 "use client"
 
 import { useState } from "react"
-import { useRouter } from "next/navigation"
-import { apiCall } from "@/utils/api"
-import { AlertCircle, CheckCircle, Upload } from "lucide-react"
+import { useRouter } from 'next/navigation'
+import { createReport } from "@/utils/api"
+import { AlertCircle, CheckCircle, Upload } from 'lucide-react'
 
 export default function ReportForm() {
   const router = useRouter()
@@ -63,32 +63,18 @@ export default function ReportForm() {
     setError("")
 
     try {
-      let imageUrl = ""
-      if (image) {
-        const formDataImage = new FormData()
-        formDataImage.append("file", image)
-        const uploadResponse = await fetch("/api/upload", {
-          method: "POST",
-          body: formDataImage,
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        })
-        if (!uploadResponse.ok) throw new Error("Image upload failed")
-        const uploadData = await uploadResponse.json()
-        imageUrl = uploadData.imageUrl
-      }
-
       const reportData = {
-        ...formData,
-        imageUrl,
-        userId: localStorage.getItem("userId"),
+        location: formData.location,
+        latitude: formData.latitude || undefined,
+        longitude: formData.longitude || undefined,
+        description: formData.description,
+        contactName: formData.contactName,
+        contactPhone: formData.contactPhone,
+        contactEmail: formData.contactEmail,
+        imageUrl: imagePreview || undefined,
       }
 
-      const result = await apiCall("/api/report", {
-        method: "POST",
-        body: JSON.stringify(reportData),
-      })
+      const result = await createReport(reportData)
 
       setSuccess("Report submitted successfully! Thank you for helping.")
       setFormData({
@@ -108,6 +94,7 @@ export default function ReportForm() {
       }, 2000)
     } catch (err) {
       setError(err.message || "Failed to submit report. Please try again.")
+      console.error('[v0] Report submission error:', err)
     } finally {
       setLoading(false)
     }

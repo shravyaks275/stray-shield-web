@@ -11,7 +11,7 @@ export default function Report() {
         <div className="max-w-4xl mx-auto px-4 py-12">
           <div className="mb-12">
             <h1 className="text-4xl font-bold text-foreground mb-2">Report a Stray Dog</h1>
-            <p className="text-muted-foreground">Help us locate and care for stray dogs in your community</p>
+            <p className="text-muted-foreground">Help us locate and care for stray dogs in your community. Fill out the form below with as much detail as possible.</p>
           </div>
           <ReportForm />
         </div>

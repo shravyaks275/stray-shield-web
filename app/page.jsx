@@ -2,7 +2,7 @@
 import Link from "next/link"
 import Navbar from "@/components/Navbar"
 import StrayShieldLogo from "@/components/StrayShieldLogo"
-import { AlertCircle, Users, MapPin, Shield, ArrowRight } from "lucide-react"
+import { AlertCircle, Users, MapPin, Shield, ArrowRight } from 'lucide-react'
 
 export default function Landing() {
   const features = [
@@ -48,13 +48,13 @@ export default function Landing() {
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
               href="/report"
-              className="inline-flex items-center justify-center px-8 py-3 bg-primary text-primary-foreground rounded-lg hover:opacity-90 transition-opacity font-medium shadow-sm"
+              className="inline-flex items-center justify-center px-8 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors font-medium shadow-sm"
             >
               Report a Stray <ArrowRight className="w-4 h-4 ml-2" />
             </Link>
             <Link
               href="/signup"
-              className="inline-flex items-center justify-center px-8 py-3 bg-accent text-accent-foreground rounded-lg hover:opacity-90 transition-opacity font-medium shadow-sm border border-accent"
+              className="inline-flex items-center justify-center px-8 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors font-medium shadow-sm"
             >
               Join as NGO
             </Link>
@@ -70,9 +70,9 @@ export default function Landing() {
             {features.map((feature, idx) => (
               <div
                 key={idx}
-                className="p-6 rounded-lg border border-border bg-background hover:border-primary hover:shadow-md transition-all"
+                className="p-6 rounded-lg border border-border bg-background hover:border-blue-400 hover:shadow-md transition-all"
               >
-                <div className="text-primary mb-4">{feature.icon}</div>
+                <div className="text-blue-500 mb-4">{feature.icon}</div>
                 <h3 className="text-lg font-semibold mb-2 text-foreground">{feature.title}</h3>
                 <p className="text-sm text-muted-foreground">{feature.description}</p>
               </div>
@@ -91,7 +91,7 @@ export default function Landing() {
           </p>
           <Link
             href="/signup"
-            className="inline-flex items-center justify-center px-8 py-3 bg-primary text-primary-foreground rounded-lg hover:opacity-90 transition-opacity font-medium shadow-sm"
+            className="inline-flex items-center justify-center px-8 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors font-medium shadow-sm"
           >
             Get Started Today
           </Link>

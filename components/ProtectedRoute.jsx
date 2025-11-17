@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter } from 'next/navigation'
 
 export default function ProtectedRoute({ children, userType }) {
   const router = useRouter()
@@ -31,7 +31,7 @@ export default function ProtectedRoute({ children, userType }) {
       <div className="flex items-center justify-center min-h-screen bg-background">
         <div className="text-center">
           <div className="inline-block animate-spin">
-            <div className="w-8 h-8 border-4 border-orange-500 border-t-transparent rounded-full"></div>
+            <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full"></div>
           </div>
           <p className="text-muted-foreground mt-4">Loading...</p>
         </div>

@@ -2,10 +2,10 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
+import { useRouter } from 'next/navigation'
 import Navbar from "@/components/Navbar"
 import { apiCall } from "@/utils/api"
-import { AlertCircle, Eye, EyeOff } from "lucide-react"
+import { AlertCircle, Eye, EyeOff } from 'lucide-react'
 
 export default function Login() {
   const router = useRouter()
@@ -78,7 +78,7 @@ export default function Login() {
             <div className="mb-6">
               <label className="text-sm font-medium text-foreground mb-3 block">I am a:</label>
               <div className="flex gap-4">
-                {["citizen", "NGO"].map((type) => (
+                {["citizen", "ngo"].map((type) => (
                   <button
                     key={type}
                     onClick={() => setUserType(type)}

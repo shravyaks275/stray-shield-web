@@ -1,55 +1,77 @@
-# Stray Shield - Civic-Tech Web App
+# Stray Shield - Complete Civic-Tech Web App
 
-A modern Next.js frontend for reporting stray dog sightings and managing community animal welfare initiatives through NGO coordination.
+A comprehensive full-stack Next.js application connecting citizens with NGOs to report and manage stray dog sightings in their community. Includes both frontend and Express backend with complete authentication and real-time reporting system.
 
-## Features
+## Key Features
 
-- **Citizen Reporting**: Easy-to-use form for reporting stray dog sightings with location, description, and images
-- **NGO Dashboard**: Comprehensive dashboard for NGOs to manage and track reports
-- **User Authentication**: Secure JWT-based authentication for citizens and NGOs
-- **Real-time Status Updates**: Track report status from pending to resolved
-- **Contact Management**: Direct contact information for report coordination
-- **Responsive Design**: Mobile-friendly interface with Tailwind CSS
+- **Citizen Reporting**: Easy-to-use form for reporting stray dog sightings with location, photo upload, and contact information
+- **NGO Dashboard**: Professional dashboard for NGOs to view, filter, and manage all reports with real-time statistics
+- **Secure Authentication**: JWT-based authentication with bcrypt password hashing for both citizens and NGOs
+- **Real-time Status Updates**: Track report progress through pending → in_progress → resolved workflow
+- **Location Tracking**: GPS coordinates and detailed location descriptions for precise sighting records
+- **Statistics Dashboard**: View total, pending, in-progress, and resolved report counts
+- **Responsive Design**: Mobile-first design with Tailwind CSS v4 for all devices
+- **Protected Routes**: Role-based access control (citizens vs NGOs)
 
 ## Tech Stack
 
-- **Framework**: Next.js 13+ with App Router
+### Frontend
+- **Framework**: Next.js 15 with App Router
 - **Language**: JavaScript (JSX only, no TypeScript)
-- **Styling**: Tailwind CSS v4
+- **Styling**: Tailwind CSS v4 with pastel blue color scheme
 - **Icons**: Lucide React
-- **Authentication**: JWT (localStorage)
 - **State Management**: React Hooks (useState, useEffect)
+- **Authentication**: JWT with localStorage persistence
+- **HTTP Client**: Native Fetch API with centralized error handling
+
+### Backend
+- **Runtime**: Node.js with Express.js
+- **Authentication**: JWT (jsonwebtoken) + bcrypt password hashing
+- **Data Storage**: JSON file-based (easily upgradeable to PostgreSQL)
+- **Middleware**: CORS, body parser, JWT verification
+- **Error Handling**: Comprehensive validation and error responses
 
 ## Project Structure
 
 \`\`\`
-├── app/
-│   ├── page.jsx           # Landing page
-│   ├── login/
-│   │   └── page.jsx       # Login page
-│   ├── signup/
-│   │   └── page.jsx       # Signup page
-│   ├── report/
-│   │   └── page.jsx       # Report form page
-│   ├── dashboard/
-│   │   └── page.jsx       # NGO dashboard
-│   └── layout.tsx         # Root layout
+stray-shield/
+├── app/                              # Next.js App Router pages
+│   ├── page.jsx                      # Landing page with features
+│   ├── login/page.jsx                # Login for citizens/NGOs
+│   ├── signup/page.jsx               # Signup with role selection
+│   ├── report/page.jsx               # Report submission form
+│   ├── dashboard/page.jsx            # NGO dashboard with stats
+│   ├── layout.tsx                    # Root layout
+│   └── globals.css                   # Global styles with pastel colors
 ├── components/
-│   ├── Navbar.jsx         # Navigation component
-│   ├── ReportForm.jsx     # Report submission form
-│   ├── ReportCard.jsx     # Report display card
-│   └── ProtectedRoute.jsx # Route protection wrapper
+│   ├── Navbar.jsx                    # Navigation with auth state
+│   ├── ReportForm.jsx                # Report form with validation
+│   ├── ReportCard.jsx                # Report display with status buttons
+│   ├── ProtectedRoute.jsx            # Auth-protected route wrapper
+│   ├── StrayShieldLogo.jsx           # Custom logo component
+│   └── ui/                           # shadcn/ui components
+├── config/
+│   └── paths.js                      # Centralized routing & API endpoints
 ├── utils/
-│   └── api.js             # Centralized API calls
-└── README.md
+│   └── api.js                        # API client with helper functions
+├── server/                           # Express backend
+│   ├── index.js                      # Main server file (15+ endpoints)
+│   ├── package.json                  # Backend dependencies
+│   ├── .env.example                  # Environment variables template
+│   └── data/                         # File-based storage directory
+├── public/                           # Static assets
+├── BACKEND_SETUP.md                  # Backend setup guide
+├── DEPLOYMENT.md                     # Deployment instructions
+└── README.md                         # This file
 \`\`\`
 
-## Installation
+## Installation & Setup
 
 ### Prerequisites
-- Node.js 16+ and npm/yarn
+- Node.js 18+ and npm
+- Git
 
-### Setup Steps
+### Frontend Setup
 
 1. **Install Dependencies**
    \`\`\`bash
@@ -57,7 +79,7 @@ A modern Next.js frontend for reporting stray dog sightings and managing communi
    \`\`\`
 
 2. **Environment Configuration**
-   Create a \`.env.local\` file:
+   Create `.env.local`:
    \`\`\`
    NEXT_PUBLIC_API_URL=http://localhost:3001
    \`\`\`
@@ -66,14 +88,127 @@ A modern Next.js frontend for reporting stray dog sightings and managing communi
    \`\`\`bash
    npm run dev
    \`\`\`
+   Frontend runs at `http://localhost:3000`
 
-4. **Open in Browser**
-   Navigate to \`http://localhost:3000\`
+### Backend Setup
+
+1. **Navigate to Backend**
+   \`\`\`bash
+   cd server
+   \`\`\`
+
+2. **Install Dependencies**
+   \`\`\`bash
+   npm install
+   \`\`\`
+
+3. **Environment Configuration**
+   Create `.env`:
+   \`\`\`
+   PORT=3001
+   JWT_SECRET=your-secret-key-change-in-production
+   NODE_ENV=development
+   \`\`\`
+
+4. **Run Server**
+   \`\`\`bash
+   npm run dev
+   \`\`\`
+   Backend runs at `http://localhost:3001`
+
+## Architecture
+
+### Authentication Flow
+1. User signs up at `/signup` with email, password, and user type
+2. Backend hashes password with bcrypt (10 salt rounds)
+3. JWT token generated with 7-day expiration
+4. Token stored in localStorage on frontend
+5. Token automatically injected in all API requests via `Authorization: Bearer` header
+6. Backend validates token on protected routes
+7. Logout clears token from localStorage
+
+### Authorization Model
+- **Citizens**: Can only view/edit their own reports
+- **NGOs**: Can view all reports, update status, and contact citizens
+- **Routes**: Protected by role checking in ProtectedRoute component
+
+### API Integration
+- Centralized `config/paths.js` defines all endpoints
+- `utils/api.js` provides typed helper functions
+- Automatic error handling with 401 redirect
+- Request/response logging for debugging
+- Form validation on frontend + backend
+
+## Color Scheme
+
+Updated to pastel blue theme for trustworthiness and accessibility:
+- **Primary Blue**: #3b82f6 - Main actions and highlights
+- **Secondary Green**: #22c55e - NGO/success actions
+- **Soft Pastels**: Sage greens, light blues for backgrounds
+- **Neutral**: Grays for secondary text and borders
+
+## Database Schema
+
+### Users
+\`\`\`json
+{
+  "id": "timestamp",
+  "email": "user@example.com",
+  "password": "bcrypt-hash",
+  "name": "John Doe",
+  "phone": "+1234567890",
+  "userType": "citizen|ngo",
+  "organizationName": "optional for NGO",
+  "registrationNumber": "optional for NGO",
+  "address": "optional for NGO",
+  "createdAt": "ISO timestamp"
+}
+\`\`\`
+
+### Reports
+\`\`\`json
+{
+  "id": "timestamp",
+  "userId": "user-id",
+  "location": "Central Park",
+  "latitude": 40.7829,
+  "longitude": -73.9654,
+  "description": "Brown dog with white spots",
+  "contactName": "John",
+  "contactPhone": "+1234567890",
+  "contactEmail": "john@example.com",
+  "imageUrl": "url-to-image",
+  "status": "pending|in_progress|resolved",
+  "createdAt": "ISO timestamp",
+  "updatedAt": "ISO timestamp"
+}
+\`\`\`
+
+## API Endpoints
+
+### Authentication
+- `POST /api/auth/signup` - Register new user (citizen or NGO)
+- `POST /api/auth/login` - Login user with email and password
+
+### Reports
+- `POST /api/reports/create` - Create new report (requires auth)
+- `GET /api/reports` - Get reports (query: `?status=pending|in_progress|resolved|all`)
+- `GET /api/reports/:id` - Get specific report
+- `PUT /api/reports/:id` - Update report status (NGO only)
+- `DELETE /api/reports/:id` - Delete report (author only)
+
+### User
+- `GET /api/users/profile` - Get user profile (requires auth)
+
+Uses Tailwind CSS v4 with custom color tokens:
+- **Primary**:  Blue (#0000FF)
+- **Background**: White/Dark depending on theme
+- **Accent**: Blue for secondary actions
 
 ## Key Components
 
 ### ProtectedRoute
-Wraps components that require authentication. Redirects unauthenticated users to login and verifies user type permissions.
+Wraps components requiring authentication. Verifies token and user type.
 
 \`\`\`jsx
 <ProtectedRoute userType="ngo">
@@ -81,144 +216,166 @@ Wraps components that require authentication. Redirects unauthenticated users to
 </ProtectedRoute>
 \`\`\`
 
-### API Utility
-Centralized API handler with automatic token injection and error handling.
+### ReportForm
+Handles report submission with fields: location, description, image upload, coordinates, and contact info.
 
 \`\`\`jsx
-import { apiCall } from '@/utils/api';
-
-const data = await apiCall('/api/endpoint', {
-  method: 'POST',
-  body: JSON.stringify(payload)
-});
+<ReportForm />
 \`\`\`
 
-## Authentication Flow
+### ReportCard
+Displays individual report with status badges and update buttons.
 
-1. User signs up at \`/signup\`
-2. Backend returns JWT token
-3. Token stored in localStorage
-4. Included in all subsequent requests via \`Authorization\` header
-5. Token validated by backend on protected endpoints
-6. User logout clears token from localStorage
+\`\`\`jsx
+<ReportCard report={report} onUpdateStatus={handleStatusChange} />
+\`\`\`
 
-## Form Validation
+### API Helper Functions
+Centralized functions for all API operations:
 
-- **Login/Signup**: Email format, password strength (min 8 chars), password match
-- **Report Form**: Required fields validation, description length (min 10 chars)
-- **NGO Details**: Organization name and registration validation
+\`\`\`jsx
+import { createReport, getReports, updateReportStatus } from '@/utils/api';
 
-## Features Implementation
+const report = await createReport(data);
+const reports = await getReports('pending');
+await updateReportStatus(reportId, 'in_progress');
+\`\`\`
 
-### Citizen Workflow
-1. Sign up as citizen
-2. Navigate to report page
-3. Fill form with location, description, and image
+## Dashboard Features
+
+### Statistics Cards
+- Total reports submitted
+- Pending reports awaiting response
+- In-progress rescue operations
+- Resolved cases
+
+### Report Filtering
+Filter reports by status: All, Pending, In Progress, Resolved
+
+### Report Grid
+Displays all reports with:
+- Report image
+- Location and coordinates
+- Status badge
+- Description
+- Contact information
+- Status update buttons
+
+### Loading & Error States
+- Spinner during data fetching
+- Empty state when no reports
+- Error alerts with retry option
+- Disabled states during updates
+
+## User Workflows
+
+### Citizen Journey
+1. Click "Report a Stray" from landing page
+2. Sign up as citizen with email and password
+3. Fill report form with:
+   - Location description
+   - GPS coordinates (optional)
+   - Description of dog
+   - Photo (optional)
+   - Contact information
 4. Submit report
-5. Receive confirmation
+5. Report visible to all NGOs
+6. Receive updates on report status
 
-### NGO Workflow
-1. Sign up as NGO with organization details
-2. Access dashboard
-3. View all pending reports
-4. Update report status (pending → in_progress → resolved)
-5. Contact citizens directly via provided contact info
+### NGO Journey
+1. Click "Join as NGO" from landing page
+2. Sign up with organization details:
+   - Organization name
+   - Registration number
+   - Address
+   - Email and password
+3. Access NGO Dashboard
+4. View all reports with statistics
+5. Filter reports by status
+6. Update report status as progress is made
+7. Contact citizens via provided phone/email
 
-## Styling
+## Security Features
 
-Uses Tailwind CSS v4 with custom color tokens:
-- **Primary**:  Blue (#0000FF)
-- **Background**: White/Dark depending on theme
-- **Accent**: Blue for secondary actions
+- **Password Hashing**: Bcrypt with 10 salt rounds
+- **JWT Authentication**: Stateless token-based auth
+- **Authorization**: Role-based access control
+- **CORS Protection**: Controlled cross-origin requests
+- **Token Validation**: Every protected endpoint verifies JWT
+- **Secure Storage**: Token in localStorage (frontend)
+- **Input Validation**: Frontend and backend validation
+- **HTTPS Ready**: Production deployment uses HTTPS
 
-### CSS Variables
-- \`--background\`: Page background
-- \`--foreground\`: Primary text
-- \`--card\`: Card backgrounds
-- \`--border\`: Border colors
-- \`--muted\`: Secondary backgrounds
-- \`--muted-foreground\`: Secondary text
+## Deployment
 
-## Error Handling
+### Frontend (Vercel)
+\`\`\`bash
+npm run build
+vercel deploy --prod
+\`\`\`
 
-- **Network Errors**: User-friendly error messages
-- **Validation Errors**: Field-level feedback
-- **Auth Errors**: Redirect to login
-- **API Errors**: Toast notifications
+### Backend (Railway/Render)
+\`\`\`bash
+cd server
+git push
+\`\`\`
 
-## Loading States
-
-- Form submission loading indicators
-- Dashboard report fetching spinners
-- Protected route loading states
-- Button disabled states during operations
-
-## API Endpoints (Expected Backend)
-
-- \`POST /api/auth/signup\` - User registration
-- \`POST /api/auth/login\` - User login
-- \`POST /api/report\` - Submit new report
-- \`GET /api/reports\` - Get reports (with status filter)
-- \`PUT /api/reports/:id\` - Update report status
-- \`POST /api/upload\` - Upload images
-
-## Browser Compatibility
-
-- Chrome (latest)
-- Firefox (latest)
-- Safari (latest)
-- Edge (latest)
-
-## Performance Optimizations
-
-- Image optimization with next/image
-- Code splitting via dynamic imports
-- Efficient state management with hooks
-- CSS minification via Tailwind
-- LocalStorage for token persistence
-
-## Security Considerations
-
-- JWT tokens for authentication
-- Secure token storage (localStorage)
-- HTTPS in production
-- Input validation on frontend
-- Route protection for sensitive pages
-- CSRF protection via same-origin requests
+See `DEPLOYMENT.md` for detailed deployment instructions.
 
 ## Future Enhancements
 
-- Real-time notifications via WebSocket
-- Map integration for location visualization
-- Photo gallery for reports
-- Export reports as PDF
-- Admin panel for system management
-- Email notifications
-- Mobile app version
-- Analytics dashboard
+- Real-time notifications with WebSockets
+- Google Maps integration for location visualization
+- Cloud image storage (AWS S3/Cloudinary)
+- Email notifications to NGOs
+- Mobile app (React Native)
+- Admin dashboard for platform management
+- Advanced analytics and reporting
+- Vaccination/rescue history tracking
+- Database migration to PostgreSQL
+- Rate limiting on API endpoints
+
+## Troubleshooting
+
+### API Connection Issues
+- Verify backend is running on `localhost:3001`
+- Check `NEXT_PUBLIC_API_URL` in `.env.local`
+- Ensure CORS is enabled in backend
+
+### Authentication Problems
+- Clear browser localStorage and login again
+- Check JWT_SECRET matches between frontend and backend
+- Verify token hasn't expired (7 days)
+
+### Data Not Loading
+- Check browser DevTools Network tab
+- Verify backend data files exist in `server/data/`
+- Check console for error messages
 
 ## Contributing
 
-Contributions are welcome! Please follow these guidelines:
-- Use JSX components for reusability
+Contributions welcome! Please:
+- Use JSX for components
 - Implement proper error handling
 - Add loading states for async operations
-- Write clear, readable code
-- Test across different screen sizes
+- Test across mobile and desktop
+- Follow existing code style
 
 ## License
 
-MIT License - feel free to use for your community projects
+MIT License - Feel free to use for your community projects
 
 ## Support
 
-For issues or questions:
-1. Check existing GitHub issues
-2. Create a new issue with detailed description
-3. Include steps to reproduce bugs
-4. Provide browser and OS information
+For issues:
+1. Check documentation files (README.md, BACKEND_SETUP.md, DEPLOYMENT.md)
+2. Review error messages in browser console and server logs
+3. Verify environment variables are set correctly
+4. Create GitHub issue with reproduction steps
 
 ---
 
-Built with ❤️ for animal welfare communities
-\`\`\`
+**Made with ❤️ for animal welfare communities**
+
+Current Version: 1.0.0
+Last Updated: 2025
