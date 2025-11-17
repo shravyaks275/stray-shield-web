@@ -71,8 +71,8 @@ export default function Dashboard() {
                   onClick={() => setFilter(status)}
                   className={`px-4 py-2 rounded-lg border transition-colors capitalize ${
                     filter === status
-                      ? "border-orange-500 bg-orange-50 text-orange-700"
-                      : "border-border text-foreground hover:border-orange-300"
+                      ? "border-blue-500 bg-blue-50 text-blue-700"
+                      : "border-border text-foreground hover:border-blue-300"
                   }`}
                 >
                   {status}
@@ -93,7 +93,7 @@ export default function Dashboard() {
           {loading ? (
             <div className="text-center py-12">
               <div className="inline-block">
-                <RefreshCw className="w-8 h-8 text-orange-500 animate-spin" />
+                <RefreshCw className="w-8 h-8 text-blue-500 animate-spin" />
               </div>
               <p className="text-muted-foreground mt-4">Loading reports...</p>
             </div>

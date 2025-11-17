@@ -127,7 +127,7 @@ const data = await apiCall('/api/endpoint', {
 ## Styling
 
 Uses Tailwind CSS v4 with custom color tokens:
-- **Primary**: Orange (#F97316)
+- **Primary**:  Blue (#0000FF)
 - **Background**: White/Dark depending on theme
 - **Accent**: Blue for secondary actions
 
