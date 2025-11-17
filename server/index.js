@@ -2,8 +2,9 @@ const express = require('express');
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
-const fs = require('fs');
-const path = require('path');
+require('dotenv').config();
+
+const pool = require('./config/database');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -13,41 +14,6 @@ const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-producti
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
-// Data storage (file-based for simplicity)
-const dataDir = path.join(__dirname, 'data');
-if (!fs.existsSync(dataDir)) {
-  fs.mkdirSync(dataDir, { recursive: true });
-}
-
-const usersFile = path.join(dataDir, 'users.json');
-const reportsFile = path.join(dataDir, 'reports.json');
-
-// Initialize data files
-function initializeData() {
-  if (!fs.existsSync(usersFile)) {
-    fs.writeFileSync(usersFile, JSON.stringify([]));
-  }
-  if (!fs.existsSync(reportsFile)) {
-    fs.writeFileSync(reportsFile, JSON.stringify([]));
-  }
-}
-
-function getUsers() {
-  return JSON.parse(fs.readFileSync(usersFile, 'utf-8'));
-}
-
-function saveUsers(users) {
-  fs.writeFileSync(usersFile, JSON.stringify(users, null, 2));
-}
-
-function getReports() {
-  return JSON.parse(fs.readFileSync(reportsFile, 'utf-8'));
-}
-
-function saveReports(reports) {
-  fs.writeFileSync(reportsFile, JSON.stringify(reports, null, 2));
-}
 
 // JWT Middleware
 function verifyToken(req, res, next) {
@@ -70,41 +36,31 @@ function verifyToken(req, res, next) {
 app.post('/api/auth/signup', async (req, res) => {
   try {
     const { email, password, name, phone, userType, organizationName, registrationNumber, address } = req.body;
-    const users = getUsers();
 
-    // Check if user exists
-    if (users.find(u => u.email === email)) {
+    const userExists = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
+    if (userExists.rows.length > 0) {
       return res.status(400).json({ message: 'User already exists' });
     }
 
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const newUser = {
-      id: Date.now().toString(),
-      email,
-      password: hashedPassword,
-      name,
-      phone,
-      userType,
-      organizationName: userType === 'ngo' ? organizationName : null,
-      registrationNumber: userType === 'ngo' ? registrationNumber : null,
-      address: userType === 'ngo' ? address : null,
-      createdAt: new Date().toISOString(),
-    };
+    const result = await pool.query(
+      'INSERT INTO users (email, password, name, phone, user_type, organization_name, registration_number, address) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id, email, user_type',
+      [email, hashedPassword, name, phone, userType, organizationName || null, registrationNumber || null, address || null]
+    );
 
-    users.push(newUser);
-    saveUsers(users);
-
-    const token = jwt.sign({ id: newUser.id, email, userType }, JWT_SECRET, { expiresIn: '7d' });
+    const newUser = result.rows[0];
+    const token = jwt.sign({ id: newUser.id, email: newUser.email, userType: newUser.user_type }, JWT_SECRET, { expiresIn: '7d' });
 
     res.json({
       token,
       userId: newUser.id,
-      userType,
+      userType: newUser.user_type,
       message: 'Signup successful',
     });
   } catch (err) {
+    console.error('[v0] Signup error:', err);
     res.status(500).json({ message: 'Signup failed', error: err.message });
   }
 });
@@ -112,9 +68,10 @@ app.post('/api/auth/signup', async (req, res) => {
 app.post('/api/auth/login', async (req, res) => {
   try {
     const { email, password, userType } = req.body;
-    const users = getUsers();
 
-    const user = users.find(u => u.email === email && u.userType === userType);
+    const result = await pool.query('SELECT * FROM users WHERE email = $1 AND user_type = $2', [email, userType]);
+    const user = result.rows[0];
+
     if (!user) {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
@@ -124,164 +81,156 @@ app.post('/api/auth/login', async (req, res) => {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
 
-    const token = jwt.sign({ id: user.id, email, userType }, JWT_SECRET, { expiresIn: '7d' });
+    const token = jwt.sign({ id: user.id, email: user.email, userType: user.user_type }, JWT_SECRET, { expiresIn: '7d' });
 
     res.json({
       token,
       userId: user.id,
-      userType,
+      userType: user.user_type,
       message: 'Login successful',
     });
   } catch (err) {
+    console.error('[v0] Login error:', err);
     res.status(500).json({ message: 'Login failed', error: err.message });
   }
 });
 
 // Report Endpoints
-app.post('/api/reports/create', verifyToken, (req, res) => {
+app.post('/api/reports/create', verifyToken, async (req, res) => {
   try {
     const { location, latitude, longitude, description, contactName, contactPhone, contactEmail, imageUrl } = req.body;
-    const reports = getReports();
 
-    const newReport = {
-      id: Date.now().toString(),
-      userId: req.user.id,
-      location,
-      latitude: latitude ? parseFloat(latitude) : null,
-      longitude: longitude ? parseFloat(longitude) : null,
-      description,
-      contactName,
-      contactPhone,
-      contactEmail,
-      imageUrl: imageUrl || null,
-      status: 'pending',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
-
-    reports.push(newReport);
-    saveReports(reports);
+    const result = await pool.query(
+      'INSERT INTO reports (user_id, location, latitude, longitude, description, contact_name, contact_phone, contact_email, image_url, status) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *',
+      [req.user.id, location, latitude || null, longitude || null, description, contactName, contactPhone, contactEmail, imageUrl || null, 'pending']
+    );
 
     res.json({
       message: 'Report created successfully',
-      report: newReport,
+      report: result.rows[0],
     });
   } catch (err) {
+    console.error('[v0] Create report error:', err);
     res.status(500).json({ message: 'Failed to create report', error: err.message });
   }
 });
 
-app.get('/api/reports', verifyToken, (req, res) => {
+app.get('/api/reports', verifyToken, async (req, res) => {
   try {
     const { status } = req.query;
-    let reports = getReports();
+    let query = 'SELECT * FROM reports';
+    const params = [];
 
-    // Filter by status if provided
-    if (status && status !== 'all') {
-      reports = reports.filter(r => r.status === status);
-    }
-
-    // NGOs see all reports, citizens see only their own
     if (req.user.userType === 'citizen') {
-      reports = reports.filter(r => r.userId === req.user.id);
+      query += ' WHERE user_id = $1';
+      params.push(req.user.id);
     }
+
+    if (status && status !== 'all') {
+      query += params.length > 0 ? ' AND status = $2' : ' WHERE status = $1';
+      params.push(status);
+    }
+
+    query += ' ORDER BY created_at DESC';
+
+    const result = await pool.query(query, params);
 
     res.json({
-      reports: reports.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)),
+      reports: result.rows,
     });
   } catch (err) {
+    console.error('[v0] Fetch reports error:', err);
     res.status(500).json({ message: 'Failed to fetch reports', error: err.message });
   }
 });
 
-app.get('/api/reports/:id', verifyToken, (req, res) => {
+app.get('/api/reports/:id', verifyToken, async (req, res) => {
   try {
     const { id } = req.params;
-    const reports = getReports();
-    const report = reports.find(r => r.id === id);
+
+    const result = await pool.query('SELECT * FROM reports WHERE id = $1', [id]);
+    const report = result.rows[0];
 
     if (!report) {
       return res.status(404).json({ message: 'Report not found' });
     }
 
-    // Check authorization
-    if (req.user.userType === 'citizen' && report.userId !== req.user.id) {
+    if (req.user.userType === 'citizen' && report.user_id !== req.user.id) {
       return res.status(403).json({ message: 'Unauthorized' });
     }
 
     res.json({ report });
   } catch (err) {
+    console.error('[v0] Fetch report error:', err);
     res.status(500).json({ message: 'Failed to fetch report', error: err.message });
   }
 });
 
-app.put('/api/reports/:id', verifyToken, (req, res) => {
+app.put('/api/reports/:id', verifyToken, async (req, res) => {
   try {
     const { id } = req.params;
     const { status } = req.body;
-    const reports = getReports();
-    const reportIndex = reports.findIndex(r => r.id === id);
 
-    if (reportIndex === -1) {
-      return res.status(404).json({ message: 'Report not found' });
-    }
-
-    // Only NGOs can update report status
     if (req.user.userType !== 'ngo') {
       return res.status(403).json({ message: 'Only NGOs can update reports' });
     }
 
-    reports[reportIndex].status = status;
-    reports[reportIndex].updatedAt = new Date().toISOString();
-    saveReports(reports);
+    const result = await pool.query(
+      'UPDATE reports SET status = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2 RETURNING *',
+      [status, id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: 'Report not found' });
+    }
 
     res.json({
       message: 'Report updated successfully',
-      report: reports[reportIndex],
+      report: result.rows[0],
     });
   } catch (err) {
+    console.error('[v0] Update report error:', err);
     res.status(500).json({ message: 'Failed to update report', error: err.message });
   }
 });
 
-app.delete('/api/reports/:id', verifyToken, (req, res) => {
+app.delete('/api/reports/:id', verifyToken, async (req, res) => {
   try {
     const { id } = req.params;
-    let reports = getReports();
-    const report = reports.find(r => r.id === id);
+
+    const reportResult = await pool.query('SELECT * FROM reports WHERE id = $1', [id]);
+    const report = reportResult.rows[0];
 
     if (!report) {
       return res.status(404).json({ message: 'Report not found' });
     }
 
-    // Citizens can only delete their own reports
-    if (req.user.userType === 'citizen' && report.userId !== req.user.id) {
+    if (req.user.userType === 'citizen' && report.user_id !== req.user.id) {
       return res.status(403).json({ message: 'Unauthorized' });
     }
 
-    reports = reports.filter(r => r.id !== id);
-    saveReports(reports);
+    await pool.query('DELETE FROM reports WHERE id = $1', [id]);
 
     res.json({ message: 'Report deleted successfully' });
   } catch (err) {
+    console.error('[v0] Delete report error:', err);
     res.status(500).json({ message: 'Failed to delete report', error: err.message });
   }
 });
 
 // User Profile Endpoint
-app.get('/api/users/profile', verifyToken, (req, res) => {
+app.get('/api/users/profile', verifyToken, async (req, res) => {
   try {
-    const users = getUsers();
-    const user = users.find(u => u.id === req.user.id);
+    const result = await pool.query('SELECT id, email, name, phone, user_type, organization_name, registration_number, address, created_at FROM users WHERE id = $1', [req.user.id]);
+    const user = result.rows[0];
 
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    // Don't send password
-    const { password, ...userWithoutPassword } = user;
-    res.json({ user: userWithoutPassword });
+    res.json({ user });
   } catch (err) {
+    console.error('[v0] Fetch profile error:', err);
     res.status(500).json({ message: 'Failed to fetch profile', error: err.message });
   }
 });
@@ -291,8 +240,7 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', message: 'Stray Shield API is running' });
 });
 
-// Initialize data and start server
-initializeData();
 app.listen(PORT, () => {
   console.log(`Stray Shield API running on http://localhost:${PORT}`);
+  console.log('Connected to PostgreSQL database');
 });
