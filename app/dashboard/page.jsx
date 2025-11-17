@@ -139,7 +139,7 @@ export default function Dashboard() {
           {loading ? (
             <div className="text-center py-16">
               <div className="inline-block">
-                <RefreshCw className="w-12 h-12 text-blue-500 animate-spin" />
+                <RefreshCw className="w-8 h-8 text-blue-500 animate-spin" />
               </div>
               <p className="text-muted-foreground mt-4">Loading reports...</p>
             </div>

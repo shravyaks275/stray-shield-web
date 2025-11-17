@@ -200,8 +200,10 @@ Updated to pastel blue theme for trustworthiness and accessibility:
 ### User
 - `GET /api/users/profile` - Get user profile (requires auth)
 
-### Health
-- `GET /api/health` - Health check endpoint
+Uses Tailwind CSS v4 with custom color tokens:
+- **Primary**:  Blue (#0000FF)
+- **Background**: White/Dark depending on theme
+- **Accent**: Blue for secondary actions
 
 ## Key Components
 
