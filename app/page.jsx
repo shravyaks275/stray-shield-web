@@ -53,7 +53,8 @@ export default function Landing() {
               Report a Stray <ArrowRight className="w-4 h-4 ml-2" />
             </Link>
             <Link
-              href="/signup"
+              // href="/signup"
+              href="/dashboard"
               className="inline-flex items-center justify-center px-8 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors font-medium shadow-sm"
             >
               Join as NGO

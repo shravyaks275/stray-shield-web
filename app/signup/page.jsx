@@ -59,47 +59,57 @@ export default function Signup() {
     return true
   }
 
+  // const handleSubmit = async (e) => {
+  //   e.preventDefault()
+  //   if (!validateForm()) return
+
+  //   setLoading(true)
+  //   setError("")
+
+  //   try {
+  //     const payload = {
+  //       name: formData.name,
+  //       email: formData.email,
+  //       password: formData.password,
+  //       phone: formData.phone,
+  //       userType: formData.userType,
+  //     }
+
+  //     if (formData.userType === "ngo") {
+  //       payload.organizationName = ngoData.organizationName
+  //       payload.registrationNumber = ngoData.registrationNumber
+  //       payload.address = ngoData.address
+  //     }
+
+  //     const data = await apiCall("/api/auth/signup", {
+  //       method: "POST",
+  //       body: JSON.stringify(payload),
+  //     })
+
+  //     setSuccess("Account created successfully! Redirecting...")
+  //     localStorage.setItem("token", data.token)
+  //     localStorage.setItem("userType", data.userType)
+  //     localStorage.setItem("userId", data.userId)
+
+  //     setTimeout(() => {
+  //       router.push(data.userType === "ngo" ? "/dashboard" : "/report")
+  //     }, 1500)
+  //   } catch (err) {
+  //     setError(err.message || "Signup failed. Please try again.")
+  //   } finally {
+  //     setLoading(false)
+  //   }
+  // }
+
   const handleSubmit = async (e) => {
-    e.preventDefault()
-    if (!validateForm()) return
+  e.preventDefault();
+  setLoading(true);
+  setError("");
 
-    setLoading(true)
-    setError("")
-
-    try {
-      const payload = {
-        name: formData.name,
-        email: formData.email,
-        password: formData.password,
-        phone: formData.phone,
-        userType: formData.userType,
-      }
-
-      if (formData.userType === "ngo") {
-        payload.organizationName = ngoData.organizationName
-        payload.registrationNumber = ngoData.registrationNumber
-        payload.address = ngoData.address
-      }
-
-      const data = await apiCall("/api/auth/signup", {
-        method: "POST",
-        body: JSON.stringify(payload),
-      })
-
-      setSuccess("Account created successfully! Redirecting...")
-      localStorage.setItem("token", data.token)
-      localStorage.setItem("userType", data.userType)
-      localStorage.setItem("userId", data.userId)
-
-      setTimeout(() => {
-        router.push(data.userType === "ngo" ? "/dashboard" : "/report")
-      }, 1500)
-    } catch (err) {
-      setError(err.message || "Signup failed. Please try again.")
-    } finally {
-      setLoading(false)
-    }
-  }
+  // 🔒 Temporarily disable signup
+   router.push("/dashboard");
+  setLoading(false);
+};
 
   return (
     <div className="min-h-screen bg-background">
@@ -231,7 +241,6 @@ export default function Signup() {
                     name="password"
                     value={formData.password}
                     onChange={handleChange}
-                    placeholder="••••••••"
                     required
                     className="w-full px-4 py-2 rounded-lg border border-border bg-background text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
@@ -252,7 +261,6 @@ export default function Signup() {
                   name="confirmPassword"
                   value={formData.confirmPassword}
                   onChange={handleChange}
-                  placeholder="••••••••"
                   required
                   className="w-full px-4 py-2 rounded-lg border border-border bg-background text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />

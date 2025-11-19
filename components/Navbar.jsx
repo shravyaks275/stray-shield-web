@@ -29,8 +29,8 @@ export default function Navbar() {
   }
 
   return (
-    <nav className="border-b border-border bg-card shadow-sm">
-      <div className="max-w-6xl mx-auto px-4">
+    <nav className="border-b border-border bg-transparent backdrop-blur-md shadow-sm">
+       <div className="max-w-6xl mx-auto px-4">
         <div className="flex justify-between items-center h-16">
           <Link
             href="/"
@@ -47,6 +47,10 @@ export default function Navbar() {
             <Link href="/" className="text-foreground hover:text-primary transition-colors text-sm">
               Home
             </Link>
+             <Link href="/citizen-dashboard" className="text-foreground hover:text-primary transition-colors text-sm">
+              Adopt
+            </Link>
+
             {isLoggedIn && userType === "citizen" && (
               <Link href="/report" className="text-foreground hover:text-primary transition-colors text-sm">
                 Report
@@ -58,15 +62,15 @@ export default function Navbar() {
               </Link>
             )}
             {!isLoggedIn ? (
-              <div className="flex gap-3">
-                <Link href="/login" className="px-4 py-2 text-foreground hover:text-primary transition-colors text-sm">
-                  Login
-                </Link>
+              <div className="flex gap-3">                
                 <Link
                   href="/signup"
                   className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90 transition-opacity text-sm font-medium"
                 >
                   Sign Up
+                </Link>
+                <Link href="/login" className="px-4 py-2 text-foreground hover:text-primary transition-colors text-sm">
+                  Login
                 </Link>
               </div>
             ) : (

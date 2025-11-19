@@ -27,35 +27,45 @@ export default function Login() {
     setError("")
   }
 
+  // const handleSubmit = async (e) => {
+  //   e.preventDefault()
+  //   setLoading(true)
+  //   setError("")
+
+  //   try {
+  //     const data = await apiCall("/api/auth/login", {
+  //       method: "POST",
+  //       body: JSON.stringify({
+  //         ...formData,
+  //         userType,
+  //       }),
+  //     })
+
+  //     localStorage.setItem("token", data.token)
+  //     localStorage.setItem("userType", data.userType)
+  //     localStorage.setItem("userId", data.userId)
+
+  //     if (data.userType === "ngo") {
+  //       router.push("/dashboard")
+  //     } else {
+  //       router.push("/report")
+  //     }
+  //   } catch (err) {
+  //     setError(err.message || "Login failed. Please try again.")
+  //   } finally {
+  //     setLoading(false)
+  //   }
+  // }
   const handleSubmit = async (e) => {
-    e.preventDefault()
-    setLoading(true)
-    setError("")
+  e.preventDefault();
+  setLoading(true);
+  setError("");
 
-    try {
-      const data = await apiCall("/api/auth/login", {
-        method: "POST",
-        body: JSON.stringify({
-          ...formData,
-          userType,
-        }),
-      })
-
-      localStorage.setItem("token", data.token)
-      localStorage.setItem("userType", data.userType)
-      localStorage.setItem("userId", data.userId)
-
-      if (data.userType === "ngo") {
-        router.push("/dashboard")
-      } else {
-        router.push("/report")
-      }
-    } catch (err) {
-      setError(err.message || "Login failed. Please try again.")
-    } finally {
-      setLoading(false)
-    }
-  }
+  // 🔒 Temporarily disable backend login
+ // alert("Login is disabled. Redirecting to dashboard...");
+  router.push("/dashboard");
+  setLoading(false);
+};
 
   return (
     <div className="min-h-screen bg-background">
@@ -116,7 +126,6 @@ export default function Login() {
                     name="password"
                     value={formData.password}
                     onChange={handleChange}
-                    placeholder="••••••••"
                     required
                     className="w-full px-4 py-2 rounded-lg border border-border bg-background text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />

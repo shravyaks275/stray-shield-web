@@ -23,20 +23,58 @@ export default function Dashboard() {
     fetchReports()
   }, [filter])
 
+  // const fetchReports = async () => {
+  //   setLoading(true)
+  //   setError("")
+  //   try {
+  //     const data = await getReports(filter)
+  //     setReports(data.reports || [])
+  //     calculateStats(data.reports || [])
+  //   } catch (err) {
+  //     console.error('[v0] Fetch error:', err)
+  //     setError(err.message || "Failed to load reports")
+  //   } finally {
+  //     setLoading(false)
+  //   }
+  // }
+
+  // dummy report without api
   const fetchReports = async () => {
-    setLoading(true)
-    setError("")
-    try {
-      const data = await getReports(filter)
-      setReports(data.reports || [])
-      calculateStats(data.reports || [])
-    } catch (err) {
-      console.error('[v0] Fetch error:', err)
-      setError(err.message || "Failed to load reports")
-    } finally {
-      setLoading(false)
-    }
-  }
+  setLoading(true);
+  setError("");
+
+  // 🔒 Backend disabled — using mock data
+  const mockReports = [
+    {
+      id: 1,
+      title: "Injured dog near market",
+      description: "A stray dog with a limp spotted near Anekal market.",
+      status: "pending",
+      location: "Anekal Market",
+      timestamp: "2025-11-19T10:30:00Z",
+    },
+    {
+      id: 2,
+      title: "Puppies stuck in drain",
+      description: "Three puppies trapped in a storm drain near the bus stand.",
+      status: "in_progress",
+      location: "Anekal Bus Stand",
+      timestamp: "2025-11-18T14:15:00Z",
+    },
+    {
+      id: 3,
+      title: "Rescue completed",
+      description: "Dog rescued and taken to shelter.",
+      status: "resolved",
+      location: "Anekal Shelter",
+      timestamp: "2025-11-17T09:00:00Z",
+    },
+  ];
+
+  setReports(mockReports);
+  calculateStats(mockReports);
+  setLoading(false);
+};
 
   const calculateStats = (reportList) => {
     const allReports = reportList.length > 0 ? reportList : reports
@@ -48,15 +86,15 @@ export default function Dashboard() {
     })
   }
 
-  const handleUpdateReport = async (reportId, status) => {
-    try {
-      await updateReportStatus(reportId, status)
-      fetchReports()
-    } catch (err) {
-      setError("Failed to update report")
-      console.error('[v0] Update error:', err)
-    }
-  }
+  // const handleUpdateReport = async (reportId, status) => {
+  //   try {
+  //     await updateReportStatus(reportId, status)
+  //     fetchReports()
+  //   } catch (err) {
+  //     setError("Failed to update report")
+  //     console.error('[v0] Update error:', err)
+  //   }
+  // }
 
   const filteredReports = filter === "all" ? reports : reports.filter((r) => r.status === filter)
 
@@ -161,7 +199,7 @@ export default function Dashboard() {
                   <ReportCard 
                     key={report.id} 
                     report={report} 
-                    onUpdateStatus={handleUpdateReport} 
+                    // onUpdateStatus={handleUpdateReport} 
                   />
                 ))}
               </div>
