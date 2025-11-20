@@ -20,6 +20,7 @@ export default function CitizenDashboard() {
     const mockDogs = [
       {
         id: 1,
+        sex: "Male",
         name: "Buddy",
         age: "2 years",
         breed: "Indie",
@@ -29,12 +30,23 @@ export default function CitizenDashboard() {
       },
       {
         id: 2,
+        sex: "Female",
         name: "Maya",
         age: "1 year",
         breed: "Indie",
         status: "Available",
         location: "E-city",
         image: "/images/maya.jpeg",
+      },
+      {
+        id: 3,
+        sex: "Male",
+        name: "Coco",
+        age: "6 Months",
+        breed: "Indie",
+        status: "Available",
+        location: "Hebbal",
+        image: "/images/coco.jpeg",
       },
     ];
 
