@@ -11,7 +11,7 @@ export default function DogCard({ dog }) {
 
       <div className="flex-1">
         <h2 className="text-xl font-bold text-foreground">{dog.name}</h2>
-        <p className="text-sm text-muted-foreground">{dog.breed} • {dog.age}</p>
+        <p className="text-sm text-muted-foreground">{dog.breed} • {dog.age} - {dog.sex}</p>
         <p className="text-sm text-muted-foreground mt-1">Location: {dog.location}</p>
       </div>
 
