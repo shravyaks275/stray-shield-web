@@ -59,57 +59,57 @@ export default function Signup() {
     return true
   }
 
-  // const handleSubmit = async (e) => {
-  //   e.preventDefault()
-  //   if (!validateForm()) return
-
-  //   setLoading(true)
-  //   setError("")
-
-  //   try {
-  //     const payload = {
-  //       name: formData.name,
-  //       email: formData.email,
-  //       password: formData.password,
-  //       phone: formData.phone,
-  //       userType: formData.userType,
-  //     }
-
-  //     if (formData.userType === "ngo") {
-  //       payload.organizationName = ngoData.organizationName
-  //       payload.registrationNumber = ngoData.registrationNumber
-  //       payload.address = ngoData.address
-  //     }
-
-  //     const data = await apiCall("/api/auth/signup", {
-  //       method: "POST",
-  //       body: JSON.stringify(payload),
-  //     })
-
-  //     setSuccess("Account created successfully! Redirecting...")
-  //     localStorage.setItem("token", data.token)
-  //     localStorage.setItem("userType", data.userType)
-  //     localStorage.setItem("userId", data.userId)
-
-  //     setTimeout(() => {
-  //       router.push(data.userType === "ngo" ? "/dashboard" : "/report")
-  //     }, 1500)
-  //   } catch (err) {
-  //     setError(err.message || "Signup failed. Please try again.")
-  //   } finally {
-  //     setLoading(false)
-  //   }
-  // }
-
   const handleSubmit = async (e) => {
-  e.preventDefault();
-  setLoading(true);
-  setError("");
+    e.preventDefault()
+    if (!validateForm()) return
 
-  // 🔒 Temporarily disable signup
-   router.push("/dashboard");
-  setLoading(false);
-};
+    setLoading(true)
+    setError("")
+
+    try {
+      const payload = {
+        name: formData.name,
+        email: formData.email,
+        password: formData.password,
+        phone: formData.phone,
+        userType: formData.userType,
+      }
+
+      if (formData.userType === "ngo") {
+        payload.organizationName = ngoData.organizationName
+        payload.registrationNumber = ngoData.registrationNumber
+        payload.address = ngoData.address
+      }
+
+      const data = await apiCall("/api/auth/signup", {
+        method: "POST",
+        body: JSON.stringify(payload),
+      })
+
+      setSuccess("Account created successfully! Redirecting...")
+      localStorage.setItem("token", data.token)
+      localStorage.setItem("userType", data.userType)
+      localStorage.setItem("userId", data.userId)
+
+      setTimeout(() => {
+        router.push(data.userType === "ngo" ? "/dashboard" : "/report")
+      }, 1500)
+    } catch (err) {
+      setError(err.message || "Signup failed. Please try again.")
+    } finally {
+      setLoading(false)
+    }
+  }
+
+//   const handleSubmit = async (e) => {
+//   e.preventDefault();
+//   setLoading(true);
+//   setError("");
+
+//   // 🔒 Temporarily disable signup
+//    router.push("/dashboard");
+//   setLoading(false);
+// };
 
   return (
     <div className="min-h-screen bg-background">
