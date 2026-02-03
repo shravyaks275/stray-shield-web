@@ -44,14 +44,14 @@ export default function ReportForm() {
   }
 
   const validateForm = () => {
-    if (!formData.location || !formData.description || !formData.contactPhone) {
+    if (!formData.location || !formData.contactPhone) {   //|| !formData.description (for description compulsory)
       setError("Please fill in all required fields")
       return false
     }
-    if (formData.description.length < 10) {
-      setError("Description must be at least 10 characters")
-      return false
-    }
+    // if (formData.description.length < 10) {
+    //   setError("Description must be at least 10 characters")
+    //   return false
+    // }
     return true
   }
 
@@ -191,7 +191,7 @@ export default function ReportForm() {
       {/* DESCRIPTION */}
       <div>
         <label className="text-sm font-medium mb-2 block">
-          Description <span className="text-xs text-muted-foreground">*</span>
+          Description 
         </label>
         <textarea
           name="description"
