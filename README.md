@@ -48,37 +48,7 @@ A comprehensive full-stack Next.js application connecting citizens with NGOs to 
 ## Project Structure
 
 ```
-stray-shield/
-├── app/
-│   ├── page.jsx                      # Landing page with features
-│   ├── login/page.jsx                # Login for citizens/NGOs
-│   ├── signup/page.jsx               # Signup with role selection
-│   ├── report/page.jsx               # Report submission form
-│   ├── dashboard/page.jsx            # NGO dashboard with stats
-│   ├── citizen-dashboard/page.jsx    # 🆕 Citizen dashboard for adoption
-│   ├── layout.tsx                    # Root layout
-│   └── globals.css                   # Global styles with pastel colors
-├── components/
-│   ├── Navbar.jsx                    # Navigation with auth state (now includes citizen dashboard link 🆕)
-│   ├── ReportForm.jsx                # Report form with validation and image preview 🆕
-│   ├── ReportCard.jsx                # Report display with status buttons
-│   ├── DogCard.jsx                   # 🆕 Display adoptable dogs
-│   ├── ProtectedRoute.jsx            # Auth-protected route wrapper
-│   ├── StrayShieldLogo.jsx           # Custom logo component
-│   └── ui/                           # shadcn/ui components
-├── config/
-│   └── paths.js                      # Centralized routing & API endpoints
-├── utils/
-│   └── api.js                        # API client with helper functions
-├── server/
-│   ├── index.js                      # Main server file (15+ endpoints)
-│   ├── package.json                  # Backend dependencies
-│   ├── .env.example                  # Environment variables template
-│   └── data/                         # File-based storage directory
-├── public/                           # Static assets (images, icons)
-├── BACKEND_SETUP.md                  # Backend setup guide
-├── DEPLOYMENT.md                     # Deployment instructions
-└── README.md                         # This file
+<pre>```textstray-shield/├── app/│   ├── page.jsx                     # Landing page│   ├── login/page.jsx               # Login page│   ├── signup/page.jsx              # Signup page│   ├── report/page.jsx              # Citizen report submission form│   ├── dashboard/page.jsx           # NGO dashboard│   ├── citizen-dashboard/page.jsx   # Citizen adoption dashboard│   ├── my-reports/page.jsx          # Citizen reports tracking page│   ├── api/│   │   └── reports/│   │       ├── my/route.js          # GET citizen reports│   │       └── [id]/route.js        # PATCH report status│   ├── layout.tsx                   # Root layout│   └── globals.css                  # Global styles├── components/│   ├── Navbar.jsx                   # Navigation bar│   ├── ReportForm.jsx               # Report submission form component│   ├── ReportCard.jsx               # Individual report card│   ├── MyReports.jsx                # Citizen reports list│   ├── DogCard.jsx                  # Adoption dog card│   ├── ProtectedRoute.jsx           # Auth-protected wrapper│   └── StrayShieldLogo.jsx          # Logo component├── config/│   └── paths.js                     # Centralized routing & API endpoints├── utils/│   └── api.js                       # API client with helper functions├── server/│   ├── index.js                     # Express backend entry│   ├── package.json                 # Backend dependencies│   ├── .env.example                 # Environment template│   └── data/                        # File-based data storage├── public/                          # Static assets├── README.md                        # Documentation├── BACKEND_SETUP.md                 # Backend setup guide└── DEPLOYMENT.md                    # Deployment instructions```</pre>
 ```
 
 ---
