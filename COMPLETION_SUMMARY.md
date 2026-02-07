@@ -1,9 +1,4 @@
-Sure — here is the **full Project Completion Summary** again, exactly as you provided it, re-sent cleanly and unchanged:
-
----
-
-```md
-# Stray Shield - Project Completion Summary
+# Stray Shield - Project Completion Summary (Updated)
 
 ## Completed Tasks
 
@@ -45,7 +40,7 @@ Sure — here is the **full Project Completion Summary** again, exactly as you p
 ### 4. Create API Utility Layer ✓
 - **Files Created/Updated**:
   - `utils/api.js` - Central API handler with helper functions
-  - Added 8 helper functions (`createReport`, `getReports`, etc.)
+  - Added helpers (`createReport`, `getReports`, `getMyReports`, `updateReportStatus`, etc.)
   - Automatic JWT injection in all requests
   - Error handling with auto-logout on 401
 - **Features**:
@@ -83,48 +78,74 @@ Sure — here is the **full Project Completion Summary** again, exactly as you p
   - Responsive and accessible layout
 - **Impact**: Modular, reusable UI for adoption listings
 
+### 8. Build My Reports Page ✓
+- **Files**:  
+  - `app/my-reports/page.jsx` (page entry)  
+  - `components/MyReports.jsx` (citizen’s report list)  
+  - `components/ReportCard.jsx` (individual report card)  
+- **Features**:
+  - Citizens can view their submitted reports
+  - Status tags (Pending, In Progress, Resolved)
+  - Update status via buttons
+  - Error handling and loading states
+  - Protected route enforcement
+- **Impact**: Citizens can track and manage their own reports
+
+### 9. Add API Routes for Reports ✓
+- **Files**:  
+  - `app/api/reports/my/route.js` → `GET /api/reports/my`  
+  - `app/api/reports/[id]/route.js` → `PATCH /api/reports/:id`  
+- **Features**:
+  - Mock data with full fields (title, description, location, contact, status)
+  - Status update handling
+  - Ready for database integration
+- **Impact**: Frontend report tracking now connected to backend endpoints
+
 ---
 
-## Project Structure
-
-```
+## Project Structure (Updated)
 
 stray-shield/
 ├── app/
-│   ├── page.jsx                  # Landing page with features
-│   ├── login/page.jsx            # Login with user type selection
-│   ├── signup/page.jsx           # Signup with NGO details
-│   ├── report/page.jsx           # Report submission form
-│   ├── dashboard/page.jsx        # NGO dashboard with statistics
-│   ├── citizen-dashboard/page.jsx# Citizen dashboard for adoption
-│   ├── layout.tsx                # Root layout
-│   └── globals.css               # Global styles with pastel colors
+│   ├── page.jsx                     # Landing page
+│   ├── login/page.jsx               # Login page
+│   ├── signup/page.jsx              # Signup page
+│   ├── report/page.jsx              # Citizen report submission form
+│   ├── dashboard/page.jsx           # NGO dashboard
+│   ├── citizen-dashboard/page.jsx   # Citizen adoption dashboard
+│   ├── my-reports/page.jsx          # Citizen reports tracking page
+│   ├── api/
+│   │   └── reports/
+│   │       ├── my/route.js          # GET citizen reports
+│   │       └── [id]/route.js        # PATCH report status
+│   ├── layout.tsx                   # Root layout
+│   └── globals.css                  # Global styles
 ├── components/
-│   ├── Navbar.jsx                # Navigation with auth state
-│   ├── ReportForm.jsx            # Form for submitting reports
-│   ├── ReportCard.jsx            # Display individual reports
-│   ├── DogCard.jsx               # Display adoptable dogs
-│   ├── ProtectedRoute.jsx        # Auth-protected wrapper
-│   └── StrayShieldLogo.jsx       # Logo component
+│   ├── Navbar.jsx                   # Navigation bar
+│   ├── ReportForm.jsx               # Report submission form component
+│   ├── ReportCard.jsx               # Individual report card
+│   ├── MyReports.jsx                # Citizen reports list
+│   ├── DogCard.jsx                  # Adoption dog card
+│   ├── ProtectedRoute.jsx           # Auth-protected wrapper
+│   └── StrayShieldLogo.jsx          # Logo component
 ├── config/
-│   └── paths.js                  # Centralized routing & API endpoints
+│   └── paths.js                     # Centralized routing & API endpoints
 ├── utils/
-│   └── api.js                    # API client with helper functions
+│   └── api.js                       # API client with helper functions
 ├── server/
-│   ├── index.js                  # Main server file
-│   ├── package.json              # Backend dependencies
-│   ├── .env.example              # Environment template
-│   └── data/                     # File-based data storage
-├── public/                       # Static assets (images, icons)
-├── README.md                     # Main documentation
-├── BACKEND_SETUP.md              # Backend setup guide
-└── DEPLOYMENT.md                 # Deployment instructions
+│   ├── index.js                     # Express backend entry
+│   ├── package.json                 # Backend dependencies
+│   ├── .env.example                 # Environment template
+│   └── data/                        # File-based data storage
+├── public/                          # Static assets
+├── README.md                        # Documentation
+├── BACKEND_SETUP.md                 # Backend setup guide
+└── DEPLOYMENT.md                    # Deployment instructions
 
-````
 
 ---
 
-## Key Features Implemented
+## Key Features Implemented (Updated)
 
 ### Frontend
 - Landing page with feature showcase  
@@ -132,6 +153,7 @@ stray-shield/
 - Report submission form with validation  
 - NGO dashboard with real-time data  
 - Citizen dashboard for adoption  
+- **Citizen “My Reports” page with status tracking and updates**  
 - Responsive design (mobile-first)  
 - Blue pastel color scheme  
 - Protected routes based on user type  
@@ -147,104 +169,19 @@ stray-shield/
 - User profile management  
 - Health check endpoint  
 - Error handling and validation  
-
-### Architecture
-- Centralized routing configuration  
-- Unified API client with helpers  
-- Component-based UI  
-- Protected route system  
-- File-based data storage (upgradeable)  
+- **Next.js API routes for citizen reports (mock data, ready for DB)**  
 
 ---
 
-## How to Run
-
-### Backend
-```bash
-cd server
-npm install
-npm run dev
-````
-
-Runs → `http://localhost:3001`
-
-### Frontend
-
-```bash
-npm install
-npm run dev
-```
-
-Runs → `http://localhost:3000`
+## Future Enhancements (unchanged but now more relevant)
+- Real-time notifications  
+- Google Maps integration  
+- Cloud storage (S3 / Cloudinary)  
+- Mobile app (React Native)  
+- Email alerts  
+- Admin dashboard  
+- Rescue workflow tracking  
 
 ---
 
-## User Workflows
-
-### Citizen Flow
-
-1. Land on homepage → Sign up as citizen
-2. Navigate to **"Report a Stray"** or **"Adopt"**
-3. Submit a report or browse adoptable dogs
-4. View dog details and express interest
-5. Report appears for NGOs
-
-### NGO Flow
-
-1. Sign up as NGO with organization details
-2. Access NGO Dashboard
-3. View all reports
-4. Filter by status
-5. Update report status
-6. Contact citizens
-
----
-
-## Deployment
-
-* **Frontend** → Vercel
-* **Backend** → Railway/Render
-* **Database** → Ready for PostgreSQL migration
-* See `DEPLOYMENT.md` for full details
-
----
-
-## Future Enhancements
-
-* Real-time notifications
-* Google Maps integration
-* Cloud storage (S3 / Cloudinary)
-* Mobile app (React Native)
-* Email alerts
-* Admin dashboard
-* Rescue workflow tracking
-
----
-
-## Testing Accounts
-
-**Citizen**
-
-* Email: `citizen@example.com`
-* Password: `password123`
-
-**NGO**
-
-* Email: `ngo@example.com`
-* Password: `password123`
-
----
-
-## Project Completion Status
-
-✓ All core features implemented
-✓ Full-stack application ready for testing
-✓ Deployment ready
-✓ Documentation complete
-✓ Code modular and maintainable
-
----
-
-**Project Status**: ✅ COMPLETE AND READY FOR DEPLOYMENT
-
-```
+**Project Status**: ✅ COMPLETE AND READY FOR DEPLOYMENT (with mock data; DB integration next)

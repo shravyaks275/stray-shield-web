@@ -12,6 +12,7 @@ export const ROUTES = {
   // Protected routes
   REPORT: '/report',
   DASHBOARD: '/dashboard',
+  MYREPORTS: '/my-reports',
 };
 
 export const API_ENDPOINTS = {
