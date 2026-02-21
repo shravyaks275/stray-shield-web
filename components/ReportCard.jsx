@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { MapPin, Phone, Mail, User, Calendar } from 'lucide-react'
+import { MapPin, Phone, Mail, User, Calendar, Activity } from 'lucide-react'
 
 export default function ReportCard({ report, onUpdateStatus }) {
   const [updating, setUpdating] = useState(false)
@@ -27,7 +27,9 @@ export default function ReportCard({ report, onUpdateStatus }) {
     <div className="rounded-lg border border-border bg-card p-6 space-y-4 hover:shadow-lg transition-shadow">
       {/* Status Badge */}
       <div
-        className={`inline-block px-3 py-1 rounded-full border text-sm font-medium capitalize ${statusColors[report.status] || statusColors.pending}`}
+        className={`inline-block px-3 py-1 rounded-full border text-sm font-medium capitalize ${
+          statusColors[report.status] || statusColors.pending
+        }`}
       >
         {report.status.replace("_", " ")}
       </div>
@@ -35,7 +37,11 @@ export default function ReportCard({ report, onUpdateStatus }) {
       {/* Image */}
       {report.imageUrl && (
         <div className="aspect-video bg-muted rounded-lg overflow-hidden">
-          <img src={report.imageUrl || "/placeholder.svg"} alt="Report" className="w-full h-full object-cover" />
+          <img
+            src={report.imageUrl || "/placeholder.svg"}
+            alt="Report"
+            className="w-full h-full object-cover"
+          />
         </div>
       )}
 
@@ -57,6 +63,16 @@ export default function ReportCard({ report, onUpdateStatus }) {
         <p className="text-foreground text-sm">{report.description}</p>
       </div>
 
+      {/* AI Health Status */}
+      {report.aiStatus && (
+        <div className="flex items-center gap-3 p-3 rounded-lg bg-blue-50 border border-blue-200">
+          <Activity className="w-4 h-4 text-blue-600" />
+          <span className="text-sm text-blue-700 font-medium">
+            AI Health Status: {report.aiStatus}
+          </span>
+        </div>
+      )}
+
       {/* Contact Information */}
       <div className="space-y-2 border-t border-border pt-4">
         {report.contactName && (
@@ -67,14 +83,20 @@ export default function ReportCard({ report, onUpdateStatus }) {
         )}
         <div className="flex items-center gap-3">
           <Phone className="w-4 h-4 text-muted-foreground" />
-          <a href={`tel:${report.contactPhone}`} className="text-sm text-blue-500 hover:text-blue-600">
+          <a
+            href={`tel:${report.contactPhone}`}
+            className="text-sm text-blue-500 hover:text-blue-600"
+          >
             {report.contactPhone}
           </a>
         </div>
         {report.contactEmail && (
           <div className="flex items-center gap-3">
             <Mail className="w-4 h-4 text-muted-foreground" />
-            <a href={`mailto:${report.contactEmail}`} className="text-sm text-blue-500 hover:text-blue-600">
+            <a
+              href={`mailto:${report.contactEmail}`}
+              className="text-sm text-blue-500 hover:text-blue-600"
+            >
               {report.contactEmail}
             </a>
           </div>
@@ -97,7 +119,9 @@ export default function ReportCard({ report, onUpdateStatus }) {
             onClick={() => handleStatusChange(status)}
             disabled={updating || report.status === status}
             className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-colors capitalize disabled:opacity-50 disabled:cursor-not-allowed ${
-              report.status === status ? "bg-blue-500 text-white" : "bg-muted text-foreground hover:bg-border"
+              report.status === status
+                ? "bg-blue-500 text-white"
+                : "bg-muted text-foreground hover:bg-border"
             }`}
           >
             {status.replace("_", " ")}
