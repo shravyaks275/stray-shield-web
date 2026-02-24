@@ -1,10 +1,15 @@
-// ml/predict.js
-const tf = require('@tensorflow/tfjs');
+const tf = require('@tensorflow/tfjs'); 
 const mobilenet = require('@tensorflow-models/mobilenet');
 const knnClassifier = require('@tensorflow-models/knn-classifier');
 const fs = require('fs');
-const { Jimp } = require('jimp');   // correct for Jimp v1.x
+const {Jimp} = require('jimp');   
 const path = require('path');
+const cliProgress = require('cli-progress'); // progress bar
+
+// Output file for predictions (with timestamp to avoid overwriting)
+const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+const outputFile = path.join(__dirname, `predictions_${timestamp}.csv`);
+fs.writeFileSync(outputFile, 'image,label,confidence\n'); // header row
 
 // Load image and convert to tensor
 async function loadImage(filePath) {
@@ -40,27 +45,39 @@ async function predictImage(mobilenetModel, classifier, imagePath) {
   const embedding = mobilenetModel.infer(imgTensor, true);
   const result = await classifier.predictClass(embedding);
 
-  console.log(
-    `${path.basename(imagePath)} → Prediction: ${result.label}, confidence: ${result.confidences[result.label]}`
-  );
+  // Save to CSV
+  const line = `${path.basename(imagePath)},${result.label},${result.confidences[result.label]}\n`;
+  fs.appendFileSync(outputFile, line);
+
+  return result.label;
 }
 
 async function runBatch(folderPath) {
   const { mobilenetModel, classifier } = await setupClassifier();
+  const files = fs.readdirSync(folderPath).filter(f => f.endsWith('.jpg') || f.endsWith('.png'));
 
-  const files = fs.readdirSync(folderPath)
-    .filter(f => f.endsWith('.jpg') || f.endsWith('.png')); // handle both
+  const summary = {};
+  const bar = new cliProgress.SingleBar({}, cliProgress.Presets.shades_classic);
+  bar.start(files.length, 0);
 
   for (const file of files) {
     const filePath = path.resolve(folderPath, file);
-    await predictImage(mobilenetModel, classifier, filePath);
+    const label = await predictImage(mobilenetModel, classifier, filePath);
+    summary[label] = (summary[label] || 0) + 1;
+    bar.increment();
   }
+
+  bar.stop();
+  console.log(`Summary for ${path.basename(folderPath)}:`, summary);
 }
 
 // ✅ Run batch predictions on all three folders
-const folders = ['healthy', 'sick', 'injured'];
-for (const folder of folders) {
-  console.log(`\n=== Predictions for ${folder} ===`);
-  const folderPath = path.resolve(__dirname, 'dataset', folder);
-  runBatch(folderPath);
-}
+(async () => {
+  const folders = ['healthy', 'sick', 'injured'];
+  for (const folder of folders) {
+    console.log(`\n=== Predictions for ${folder} ===`);
+    const folderPath = path.resolve(__dirname, 'dataset', folder);
+    await runBatch(folderPath);
+  }
+  console.log(`\nAll predictions saved to: ${outputFile}`);
+})();

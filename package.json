@@ -45,6 +45,7 @@
     "autoprefixer": "^10.4.20",
     "bcryptjs": "latest",
     "class-variance-authority": "^0.7.1",
+    "cli-progress": "^3.12.0",
     "clsx": "^2.1.1",
     "cmdk": "1.0.4",
     "cors": "latest",
