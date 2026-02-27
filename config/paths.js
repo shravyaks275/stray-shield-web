@@ -11,8 +11,9 @@ export const ROUTES = {
   
   // Protected routes
   REPORT: '/report',
-  DASHBOARD: '/dashboard',
+  DASHBOARD: '/ngo-dashboard',
   MYREPORTS: '/my-reports',
+  ADOPTION_BOARD: '/ngo/adoption-board',
 };
 
 export const API_ENDPOINTS = {

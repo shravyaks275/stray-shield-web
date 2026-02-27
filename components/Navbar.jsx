@@ -64,9 +64,14 @@ export default function Navbar() {
             )}
 
             {isLoggedIn && userType === "ngo" && (
-              <Link href="/dashboard" className="text-foreground hover:text-primary transition-colors text-sm">
-                Dashboard
-              </Link>
+              <>
+                <Link href="/ngo-dashboard" className="text-foreground hover:text-primary transition-colors text-sm">
+                  Dashboard
+                </Link>
+                <Link href="/ngo/adoption-board" className="text-foreground hover:text-primary transition-colors text-sm">
+                  Adoption Board
+                </Link>
+              </>
             )}
             {!isLoggedIn ? (
               <div className="flex gap-3">
@@ -114,12 +119,17 @@ export default function Navbar() {
               </Link>
             )}
             {isLoggedIn && userType === "ngo" && (
-              <Link
-                href="/dashboard"
-                className="block text-foreground hover:text-primary transition-colors py-2 text-sm"
-              >
-                Dashboard
-              </Link>
+              <>
+                <Link
+                  href="/ngo-dashboard"
+                  className="block text-foreground hover:text-primary transition-colors py-2 text-sm"
+                >
+                  Dashboard
+                </Link>
+                <Link href="/ngo/adoption-board" className="text-foreground hover:text-primary transition-colors text-sm">
+                  Adoption Board
+                </Link>
+              </>
             )}
             {!isLoggedIn ? (
               <div className="flex flex-col gap-2 pt-2">
