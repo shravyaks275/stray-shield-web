@@ -7,7 +7,7 @@ import ReportCard from "@/components/ReportCard"
 import { getReports, updateReportStatus } from "@/utils/api"
 import { AlertCircle, RefreshCw, BarChart3, Clock, CheckCircle, Play } from 'lucide-react'
 
-export default function Dashboard() {
+export default function NgoDashboard() {
   const [reports, setReports] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
@@ -103,7 +103,7 @@ export default function Dashboard() {
       <div className="min-h-screen bg-background">
         <Navbar />
 
-        <div className="max-w-7xl mx-auto px-4 py-12">
+        <div className="max-w-6xl mx-auto px-4 py-12">
           {/* Header */}
           <div className="mb-12">
             <h1 className="text-4xl font-bold text-foreground mb-2">NGO Dashboard</h1>

@@ -46,7 +46,7 @@ export default function Login() {
       localStorage.setItem("userId", data.userId)
 
       if (data.userType === "ngo") {
-        router.push("/dashboard")
+        router.push("/ngo-dashboard")
       } else {
         router.push("/report")
       }

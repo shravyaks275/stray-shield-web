@@ -1,7 +1,7 @@
 // Mock users (temporary, before DB)
 let mockUsers = [
-  { id: 1, email: "citizen@example.com", password: "password123", userType: "citizen", name: "John Citizen" },
-  { id: 2, email: "ngo@example.com", password: "password123", userType: "ngo", name: "Helping Hands NGO" },
+  { id: 1, email: "citizen@example.com", password: "1234", userType: "citizen", name: "John Citizen" },
+  { id: 2, email: "ngo@example.com", password: "1234", userType: "ngo", name: "Helping Hands NGO" },
 ];
 
 const express = require('express');
@@ -320,4 +320,50 @@ app.get('/api/health', (req, res) => {
 app.listen(PORT, () => {
   console.log(`Stray Shield API running on http://localhost:${PORT}`);
   console.log('Connected to PostgreSQL database');
+});
+
+// Mock Dogs (temporary, before DB)
+let dogs = require('./data/dogs.json');
+
+// Get all dogs
+app.get('/api/dogs', verifyToken, (req, res) => {
+  res.json(dogs);
+});
+
+// Add interest in a dog
+app.post('/api/interest', verifyToken, (req, res) => {
+  const { dogId, userName, contact } = req.body;
+  const dog = dogs.find(d => d.dogId === dogId);
+
+  if (!dog) {
+    return res.status(404).json({ message: "Dog not found" });
+  }
+
+  dog.interestedUsers.push({
+    userId: Date.now().toString(),
+    userName,
+    contact,
+    status: "Pending"
+  });
+
+  res.json({ message: "Interest recorded", dog });
+});
+
+// NGO can update interest status
+app.put('/api/interest/:dogId/:userId', verifyToken, (req, res) => {
+  if (req.user.userType !== 'ngo') {
+    return res.status(403).json({ message: "Only NGOs can update interest" });
+  }
+
+  const { dogId, userId } = req.params;
+  const { status } = req.body;
+
+  const dog = dogs.find(d => d.dogId === dogId);
+  if (!dog) return res.status(404).json({ message: "Dog not found" });
+
+  const interest = dog.interestedUsers.find(u => u.userId === userId);
+  if (!interest) return res.status(404).json({ message: "Interest not found" });
+
+  interest.status = status;
+  res.json({ message: "Interest updated", dog });
 });

@@ -124,3 +124,26 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* swiper */
+/* arrows only inside DogCard Swiper */
+.dog-swiper .swiper-button-next,
+.dog-swiper .swiper-button-prev {
+  width: 20px;
+  height: 20px;
+  font-size: 15px;
+  color: #ffffff; /* white arrows */
+}
+
+/* dots */
+.dog-swiper .swiper-pagination-bullet {
+  background: white !important;
+}
+.dog-swiper .swiper-pagination-bullet-active {
+  background: white !important;
+}
+@layer components {
+  .dog-image {
+    @apply w-full h-55 object-cover rounded-md;
+  }
+}

@@ -92,7 +92,7 @@ export default function Signup() {
       localStorage.setItem("userId", data.userId)
 
       setTimeout(() => {
-        router.push(data.userType === "ngo" ? "/dashboard" : "/report")
+        router.push(data.userType === "ngo" ? "/ngo-dashboard" : "/report")
       }, 1500)
     } catch (err) {
       setError(err.message || "Signup failed. Please try again.")
