@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "build": "next build",
-    "dev": "next dev",
+    "dev": "next dev -p 3000",
     "lint": "eslint .",
     "start": "next start"
   },
@@ -53,6 +53,7 @@
     "dotenv": "latest",
     "embla-carousel-react": "8.5.1",
     "express": "latest",
+    "framer-motion": "^12.38.0",
     "fs": "0.0.1-security",
     "input-otp": "1.4.1",
     "jimp": "^1.6.0",
