@@ -1,65 +1,115 @@
 // ml/train.js
+
 const tf = require('@tensorflow/tfjs');
 const mobilenet = require('@tensorflow-models/mobilenet');
 const knnClassifier = require('@tensorflow-models/knn-classifier');
 const fs = require('fs');
 const path = require('path');
-const {Jimp} = require('jimp'); // image loader
+const Jimp = require('jimp');
 
-// Load image and convert to tensor
+// ONLY SAFE FORMATS (REMOVE WEBP ❗)
+const VALID_EXTENSIONS = ['.jpg', '.jpeg', '.png'];
+
 async function loadImage(filePath) {
-  const image = await Jimp.read(filePath);
-  const { data, width, height } = image.bitmap;
+  try {
+    const image = await Jimp.read(filePath);
 
-  // Convert raw pixel data (RGBA) into a tensor
-  const imgTensor = tf.tensor3d(new Uint8Array(data), [height, width, 4]);
+    // resize
+    image.resize(224, 224);
 
-  // Remove alpha channel (RGBA → RGB)
-  const rgbTensor = imgTensor.slice([0, 0, 0], [-1, -1, 3]);
+    const { data, width, height } = image.bitmap;
 
-  // Resize to 224x224 (MobileNet input size)
-  const resized = tf.image.resizeBilinear(rgbTensor, [224, 224]);
+    const buffer = [];
 
-  // Normalize pixel values to [0,1]
-  const normalized = resized.div(255.0);
+    // extract RGB only
+    for (let i = 0; i < data.length; i += 4) {
+      buffer.push(data[i]);     // R
+      buffer.push(data[i + 1]); // G
+      buffer.push(data[i + 2]); // B
+    }
 
-  // Add batch dimension → shape [1, 224, 224, 3]
-  return normalized.expandDims(0);
+    const tensor = tf.tensor3d(buffer, [height, width, 3]);
+
+    return tensor.div(255.0).expandDims(0);
+
+  } catch (err) {
+    throw new Error("Invalid image");
+  }
 }
 
 async function train() {
-  const classifier = knnClassifier.create();
+  console.log("🚀 Loading MobileNet...");
   const mobilenetModel = await mobilenet.load();
+
+  const classifier = knnClassifier.create();
 
   const classes = ['healthy', 'injured', 'sick'];
 
   for (const label of classes) {
     const folder = path.join(__dirname, 'dataset', label);
-    const files = fs.readdirSync(folder);
 
-    for (const file of files) {
-      const imgTensor = await loadImage(path.join(folder, file));
-      const embedding = mobilenetModel.infer(imgTensor, true);
-      classifier.addExample(embedding, label);
-      imgTensor.dispose();
+    if (!fs.existsSync(folder)) {
+      console.log(`❌ Missing folder: ${label}`);
+      continue;
     }
+
+    const files = fs.readdirSync(folder).filter(file => {
+      const ext = path.extname(file).toLowerCase();
+      return VALID_EXTENSIONS.includes(ext);
+    });
+
+    console.log(`\n📂 ${label}: ${files.length} images`);
+
+    let processed = 0;
+    let failed = 0;
+
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      const filePath = path.join(folder, file);
+
+      try {
+        console.log(`➡️ ${label}: ${i + 1}/${files.length}`);
+
+        const imgTensor = await loadImage(filePath);
+
+        const embedding = mobilenetModel.infer(imgTensor, true);
+
+        classifier.addExample(embedding, label);
+
+        tf.dispose([imgTensor, embedding]);
+
+        processed++;
+
+      } catch (err) {
+        console.log(`⚠️ Failed: ${file}`);
+        failed++;
+      }
+    }
+
+    console.log(`✅ ${label}: Processed ${processed}, Failed ${failed}`);
   }
 
-  // Save classifier dataset
+  console.log("\n💾 Saving model...");
+
   const dataset = classifier.getClassifierDataset();
-  const json = JSON.stringify(
-    Object.fromEntries(
-      Object.entries(dataset).map(([label, data]) => [
-        label,
-        Array.from(data.dataSync()),
-      ])
-    )
-  );
+  const datasetObj = {};
+
+  Object.keys(dataset).forEach((key) => {
+    datasetObj[key] = Array.from(dataset[key].dataSync());
+  });
+
+  const savePath = path.join(__dirname, 'health_model');
+
+  if (!fs.existsSync(savePath)) {
+    fs.mkdirSync(savePath);
+  }
+
   fs.writeFileSync(
-    path.join(__dirname, 'health_model', 'classifier.json'),
-    json
+    path.join(savePath, 'classifier.json'),
+    JSON.stringify(datasetObj)
   );
-  console.log('✅ Training complete, classifier saved!');
+
+  console.log("✅ Training complete, classifier saved!");
 }
 
 train();
