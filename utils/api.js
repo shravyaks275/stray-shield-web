@@ -121,3 +121,25 @@ export async function getUserProfile() {
 }
 
 export { API_ENDPOINTS } from '@/config/paths'
+
+/**
+ * Helper function to get reports
+ */
+export async function getMyReports() {
+  const res = await fetch("/api/reports/my");
+  if (!res.ok) throw new Error("Failed to fetch reports");
+  return res.json();
+}
+
+/**
+ * Helper function to update reports
+ */
+export async function updateMyReportStatus(id, status) {
+  const res = await fetch(`/api/reports/${id}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ status }),
+  });
+  if (!res.ok) throw new Error("Failed to update status");
+  return res.json();
+}

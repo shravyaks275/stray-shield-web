@@ -1,0 +1,42 @@
+[
+  {
+    "dogId": "d001",
+    "name": "Buddy",
+    "age": 2,
+    "breed": "Labrador",
+    "status": "Available",
+    "interestedUsers": ["u015", "u016", "u017"]
+  },
+    {
+        "dogId": "d002",
+        "name": "Lucy",
+        "age": 3,
+        "breed": "Beagle",
+        "status": "Available",
+        "interestedUsers": ["u020", "u021", "u022", "u023"]
+    },
+    {
+        "dogId": "d003",
+        "name": "Max",
+        "age": 1,
+        "breed": "German Shepherd",
+        "status": "Adopted",
+        "interestedUsers": ["u001", "u002", "u003", "u004", "u005"]
+    },
+    {
+        "dogId": "d004",
+        "name": "Daisy",
+        "age": 4,
+        "breed": "Bulldog",
+        "status": "Available",
+        "interestedUsers": ["u041", "u042", "u043"]
+    },
+    {
+        "dogId": "d005",
+        "name": "Charlie",
+        "age": 5,
+        "breed": "Poodle",
+        "status": "Available",
+        "interestedUsers": ["u011", "u012", "u013", "u014"]
+    }
+]
