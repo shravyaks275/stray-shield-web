@@ -83,7 +83,7 @@ export default function ReportCard({ report, onUpdateStatus }) {
 
       {/* Timestamp */}
       {report.createdAt && (
-        <div className="flex items-center gap-2 text-xs text-muted-foreground border-t border-border pt-4">
+        <div className="flex items-center gap-2 text-xs text-muted-foreground border-t border-border pt-2">
           <Calendar className="w-4 h-4" />
           {new Date(report.createdAt).toLocaleDateString()}
         </div>
