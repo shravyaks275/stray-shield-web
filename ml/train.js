@@ -7,30 +7,30 @@ const fs = require('fs');
 const path = require('path');
 const Jimp = require('jimp');
 
-// ONLY SAFE FORMATS (REMOVE WEBP ❗)
 const VALID_EXTENSIONS = ['.jpg', '.jpeg', '.png'];
 
+// ✅ FIXED IMAGE LOADER (NO tf.node)
 async function loadImage(filePath) {
   try {
     const image = await Jimp.read(filePath);
-
-    // resize
     image.resize(224, 224);
 
     const { data, width, height } = image.bitmap;
 
     const buffer = [];
 
-    // extract RGB only
     for (let i = 0; i < data.length; i += 4) {
       buffer.push(data[i]);     // R
       buffer.push(data[i + 1]); // G
       buffer.push(data[i + 2]); // B
     }
 
-    const tensor = tf.tensor3d(buffer, [height, width, 3]);
+    const tensor = tf.tensor3d(buffer, [height, width, 3])
+      .toFloat()
+      .div(255.0)
+      .expandDims(0);
 
-    return tensor.div(255.0).expandDims(0);
+    return tensor;
 
   } catch (err) {
     throw new Error("Invalid image");
@@ -94,9 +94,10 @@ async function train() {
   const dataset = classifier.getClassifierDataset();
   const datasetObj = {};
 
-  Object.keys(dataset).forEach((key) => {
-    datasetObj[key] = Array.from(dataset[key].dataSync());
-  });
+  for (let label in dataset) {
+    const data = await dataset[label].array(); // ✅ CORRECT
+    datasetObj[label] = data;
+  }
 
   const savePath = path.join(__dirname, 'health_model');
 
