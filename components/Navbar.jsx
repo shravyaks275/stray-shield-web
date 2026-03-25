@@ -43,7 +43,8 @@ export default function Navbar() {
     { name: "Report", href: "/report", show: isLoggedIn && userType === "citizen" },
     { name: "My Reports", href: "/my-reports", show: isLoggedIn && userType === "citizen" },
     { name: "Dashboard", href: "/ngo-dashboard", show: isLoggedIn && userType === "ngo" },
-    { name: "Adoption Board", href: "/ngo/adoption-board", show: isLoggedIn && userType === "ngo" }
+    { name: "Adoption Board", href: "/ngo/adoption-board", show: isLoggedIn && userType === "ngo" },
+    { name: "Health Records", href: "/ngo/health-records", show: isLoggedIn && userType === "ngo" }
   ].filter(link => link.show)
 
   return (

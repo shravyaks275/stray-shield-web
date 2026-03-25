@@ -4,7 +4,7 @@ import { useState } from "react"
 import { MapPin, Phone, Mail, User, Calendar, Activity } from 'lucide-react'
 import { motion } from "framer-motion"
 
-export default function ReportCard({ report, onUpdateStatus }) {
+export default function ReportCard({ report, onUpdateStatus, isCitizen = false }) {
   const [updating, setUpdating] = useState(false)
 
   const handleStatusChange = async (newStatus) => {
@@ -123,23 +123,33 @@ export default function ReportCard({ report, onUpdateStatus }) {
         </div>
       </div>
 
-      {/* Status Update Buttons */}
+      {/* Status Update Buttons or Outcome Label */}
       <div className="flex gap-2.5 pt-5 border-t border-border/40">
-        {statusOptions.map((status) => (
-          <motion.button
-            whileTap={{ scale: 0.95 }}
-            key={status}
-            onClick={() => handleStatusChange(status)}
-            disabled={updating || report.status === status}
-            className={`flex-1 py-2.5 px-2 rounded-xl text-xs font-bold transition-all capitalize shadow-sm disabled:opacity-50 disabled:pointer-events-none ${
-              report.status === status
-                ? "bg-foreground text-background shadow-md border-transparent"
-                : "bg-background/60 backdrop-blur-sm text-foreground border border-border/60 hover:border-primary/50 hover:bg-primary/5"
-            }`}
-          >
-            {status.replace("_", " ")}
-          </motion.button>
-        ))}
+        {isCitizen ? (
+          <div className="w-full flex items-center justify-center p-3 rounded-xl bg-secondary/50 border border-white/10 text-sm font-bold text-foreground capitalize">
+            Current Status: {report.status.replace("_", " ")}
+          </div>
+        ) : report.status === "pending" ? (
+          statusOptions.map((status) => (
+            <motion.button
+              whileTap={{ scale: 0.95 }}
+              key={status}
+              onClick={() => handleStatusChange(status)}
+              disabled={updating || report.status === status}
+              className={`flex-1 py-2.5 px-2 rounded-xl text-xs font-bold transition-all capitalize shadow-sm disabled:opacity-50 disabled:pointer-events-none ${
+                report.status === status
+                  ? "bg-foreground text-background shadow-md border-transparent"
+                  : "bg-background/60 backdrop-blur-sm text-foreground border border-border/60 hover:border-primary/50 hover:bg-primary/5"
+              }`}
+            >
+              {status.replace("_", " ")}
+            </motion.button>
+          ))
+        ) : (
+          <div className="w-full flex items-center justify-center p-3 rounded-xl bg-secondary/50 border border-white/10 text-sm font-bold text-foreground capitalize">
+            Outcome Selected: {report.status.replace("_", " ")} ✅
+          </div>
+        )}
       </div>
     </motion.div>
   )

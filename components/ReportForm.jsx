@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { useRouter } from 'next/navigation'
-import { createReport } from "@/utils/api"
+import { createReport, apiCall } from "@/utils/api"
 import { AlertCircle, CheckCircle, Upload, X } from 'lucide-react'
 import { motion, AnimatePresence } from "framer-motion"
 
@@ -17,19 +17,16 @@ export default function ReportForm() {
     contactPhone: "",
     contactEmail: "",
   })
-  const [images, setImages] = useState([])              
-  const [imagePreviews, setImagePreviews] = useState([]) 
+  const [images, setImages] = useState([])
+  const [imagePreviews, setImagePreviews] = useState([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
   const [success, setSuccess] = useState("")
-  const [aiStatuses, setAiStatuses] = useState([])       
+  const [aiStatuses, setAiStatuses] = useState([])
 
   const handleChange = (e) => {
     const { name, value } = e.target
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }))
+    setFormData((prev) => ({ ...prev, [name]: value }))
     setError("")
   }
 
@@ -38,7 +35,6 @@ export default function ReportForm() {
     if (files.length > 0) {
       setImages(prev => [...prev, ...files])
 
-      // Generate previews
       const readers = files.map(file => {
         return new Promise(resolve => {
           const reader = new FileReader()
@@ -54,8 +50,8 @@ export default function ReportForm() {
   }
 
   const removeImage = (indexToRemove) => {
-    setImages(prev => prev.filter((_, idx) => idx !== indexToRemove));
-    setImagePreviews(prev => prev.filter((_, idx) => idx !== indexToRemove));
+    setImages(prev => prev.filter((_, idx) => idx !== indexToRemove))
+    setImagePreviews(prev => prev.filter((_, idx) => idx !== indexToRemove))
   }
 
   const validateForm = () => {
@@ -78,31 +74,30 @@ export default function ReportForm() {
     try {
       let aiResults = []
 
-      // 🔎 Step 1: Call AI classifier for each image
+      // Step 1: Call backend AI classifier for each image
       if (imagePreviews.length > 0) {
         for (const preview of imagePreviews) {
-          const base64Image = preview.split(",")[1] 
-          const res = await fetch("/api/classify", {
+          const base64Image = preview.split(",")[1]
+          const res = await apiCall("/api/classify", {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ imageBuffer: base64Image }),
           })
-          const data = await res.json()
-          aiResults.push(data.label || "Unknown")
+          aiResults.push(res.label || "Unknown")
         }
         setAiStatuses(aiResults)
       }
 
-      // 🔎 Step 2: Build report payload
+      // Step 2: Build report payload
       const reportData = {
         ...formData,
         latitude: formData.latitude || undefined,
         longitude: formData.longitude || undefined,
-        images: imagePreviews,   
-        aiStatuses: aiResults,   
+        images: imagePreviews,
+        imageUrl: imagePreviews[0] || undefined,
+        aiStatuses: aiResults,
       }
 
-      // 🔎 Step 3: Save report via backend
+      // Step 3: Save report via backend
       await createReport(reportData)
 
       setSuccess("Report submitted successfully! Thank you for helping.")
@@ -161,6 +156,7 @@ export default function ReportForm() {
         )}
       </AnimatePresence>
 
+      {/* Reporter Details */}
       <div className="space-y-6">
         <div className="pb-4 border-b border-white/10">
           <h3 className="text-lg font-bold text-foreground tracking-tight">Reporter Details</h3>
@@ -170,45 +166,20 @@ export default function ReportForm() {
         <div className="grid sm:grid-cols-2 gap-6">
           <div>
             <label className={labelClasses}>Your Name</label>
-            <input
-              type="text"
-              name="contactName"
-              value={formData.contactName}
-              onChange={handleChange}
-              placeholder="Full name"
-              className={inputClasses}
-            />
+            <input type="text" name="contactName" value={formData.contactName} onChange={handleChange} placeholder="Full name" className={inputClasses} />
           </div>
-
           <div>
-            <label className={labelClasses}>
-              Phone Number <span className="text-primary ml-1">*</span>
-            </label>
-            <input
-              type="tel"
-              name="contactPhone"
-              value={formData.contactPhone}
-              onChange={handleChange}
-              placeholder="+91 1234567890"
-              required
-              className={inputClasses}
-            />
+            <label className={labelClasses}>Phone Number <span className="text-primary ml-1">*</span></label>
+            <input type="tel" name="contactPhone" value={formData.contactPhone} onChange={handleChange} placeholder="+91 1234567890" required className={inputClasses} />
           </div>
-
           <div className="sm:col-span-2">
             <label className={labelClasses}>Email</label>
-            <input
-              type="email"
-              name="contactEmail"
-              value={formData.contactEmail}
-              onChange={handleChange}
-              placeholder="you@email.com"
-              className={inputClasses}
-            />
+            <input type="email" name="contactEmail" value={formData.contactEmail} onChange={handleChange} placeholder="you@email.com" className={inputClasses} />
           </div>
         </div>
       </div>
 
+      {/* Incident Details */}
       <div className="space-y-6 pt-6 border-t border-white/10">
         <div className="pb-4 border-b border-white/10">
           <h3 className="text-lg font-bold text-foreground tracking-tight">Incident Details</h3>
@@ -216,47 +187,23 @@ export default function ReportForm() {
         </div>
 
         <div>
-          <label className={labelClasses}>
-            Exact Location <span className="text-primary ml-1">*</span>
-          </label>
-          <input
-            type="text"
-            name="location"
-            value={formData.location}
-            onChange={handleChange}
-            placeholder="e.g., Near Central Park entrance, Main Street"
-            required
-            className={inputClasses}
-          />
+          <label className={labelClasses}>Exact Location <span className="text-primary ml-1">*</span></label>
+          <input type="text" name="location" value={formData.location} onChange={handleChange} placeholder="e.g., Near Central Park entrance, Main Street" required className={inputClasses} />
         </div>
 
         <div>
           <label className={labelClasses}>Description</label>
-          <textarea
-            name="description"
-            value={formData.description}
-            onChange={handleChange}
-            rows="4"
-            placeholder="Describe the dog's appearance, collar details, or any visible injuries..."
-            className={`${inputClasses} resize-none`}
-          />
+          <textarea name="description" value={formData.description} onChange={handleChange} rows="4" placeholder="Describe the dog's appearance, collar details, or any visible injuries..." className={`${inputClasses} resize-none`} />
         </div>
 
+        {/* Image Upload */}
         <div>
           <label className={labelClasses}>Photos of the Dog</label>
           <div className="border-2 border-dashed border-border/60 hover:border-primary/50 bg-background/30 rounded-2xl p-6 transition-colors">
-            <input
-              type="file"
-              accept="image/*"
-              multiple
-              onChange={handleImageChange}
-              className="hidden"
-              id="image-input"
-            />
-            
+            <input type="file" accept="image/*" multiple onChange={handleImageChange} className="hidden" id="image-input" />
             {imagePreviews.length > 0 ? (
               <div className="space-y-6">
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                   <AnimatePresence>
                     {imagePreviews.map((src, idx) => (
                       <motion.div 
@@ -300,6 +247,7 @@ export default function ReportForm() {
         </div>
       </div>
 
+      {/* AI Statuses */}
       {aiStatuses.length > 0 && (
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="p-4 rounded-xl bg-indigo-500/10 border border-indigo-500/20 space-y-2">
           {aiStatuses.map((status, idx) => (
@@ -310,6 +258,7 @@ export default function ReportForm() {
         </motion.div>
       )}
 
+      {/* Submit Button */}
       <motion.button
         whileHover={{ scale: 1.02 }}
         whileTap={{ scale: 0.98 }}
@@ -317,7 +266,7 @@ export default function ReportForm() {
         disabled={loading}
         className="w-full py-4 bg-foreground text-background font-bold text-lg rounded-xl shadow-lg hover:shadow-[0_0_20px_-5px_rgba(var(--foreground),0.5)] disabled:opacity-70 disabled:pointer-events-none transition-all mt-4"
       >
-         {loading ? "Submitting Report..." : "Submit Report"}
+        {loading ? "Submitting Report..." : "Submit Report"}
       </motion.button>
     </motion.form>
   )

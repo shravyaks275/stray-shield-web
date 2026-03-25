@@ -109,6 +109,7 @@ export default function MyReports() {
               <ReportCard
                 report={report}
                 onUpdateStatus={handleUpdateStatus}
+                isCitizen={true}
               />
             </motion.div>
           ))}

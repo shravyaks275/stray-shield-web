@@ -22,7 +22,7 @@ export default function NgoDashboard() {
 
   useEffect(() => {
     fetchReports()
-  }, [filter])
+  }, []) // Remove filter dependency
 
   // dummy report without api
   const fetchReports = async () => {
@@ -34,9 +34,9 @@ export default function NgoDashboard() {
       {
         id: 1,
         title: "Injured dog near market",
-        description: "A stray dog with a limp spotted near Anekal market.",
+        description: "A stray dog with a limp spotted near Madivala market.",
         status: "pending",
-        location: "Anekal Market",
+        location: "Madivala Market",
         timestamp: "2025-11-19T10:30:00Z",
         aiStatus: "Possible Injury",
         contactName: "Rohan K",
@@ -57,7 +57,7 @@ export default function NgoDashboard() {
         title: "Rescue completed",
         description: "Dog rescued and taken to shelter.",
         status: "resolved",
-        location: "Anekal Shelter",
+        location: "Koramangala Shelter",
         timestamp: "2025-11-17T09:00:00Z",
         aiStatus: "Safe",
         contactName: "Shelter Staff",
@@ -81,6 +81,20 @@ export default function NgoDashboard() {
       resolved: allReports.filter(r => r.status === 'resolved').length,
     })
   }
+
+  const handleUpdateStatus = async (reportId, newStatus) => {
+    try {
+      // Mock update
+      const updatedReports = reports.map((r) =>
+        r.id === reportId ? { ...r, status: newStatus } : r
+      );
+      setReports(updatedReports);
+      calculateStats(updatedReports);
+    } catch (err) {
+      setError("Failed to update status. Please try again.");
+      console.error("[v0] API update status error:", err);
+    }
+  };
 
   const filteredReports = filter === "all" ? reports : reports.filter((r) => r.status === filter)
 
@@ -204,7 +218,7 @@ export default function NgoDashboard() {
               >
                 {filteredReports.map((report) => (
                   <motion.div key={report.id} variants={itemVariants}>
-                    <ReportCard report={report} />
+                    <ReportCard report={report} onUpdateStatus={handleUpdateStatus} />
                   </motion.div>
                 ))}
               </motion.div>
