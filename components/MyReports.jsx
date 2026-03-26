@@ -22,7 +22,7 @@ export default function MyReports() {
       // 🔒 Backend disabled — using mock data for UI demo
       // const data = await getMyReports() 
       
-      const mockReports = [
+      let mockReports = [
         {
           id: 1,
           title: "Injured dog near market",
@@ -33,6 +33,21 @@ export default function MyReports() {
           aiStatus: "Possible Injury",
         },
       ];
+
+      if (typeof window !== "undefined") {
+        const local = localStorage.getItem("stray_reports_data");
+        const currentUserId = localStorage.getItem("userId");
+        if (local) {
+          const parsed = JSON.parse(local);
+          // Only show reports that explicitly belong to this user (or don't have a userId for legacy mock reports)
+          const userSpecificReports = parsed.filter(r => {
+             if (!r.userId) return false; // Filter out if another user created it, wait if it has no userId and we want to hide it from others. Let's strictly only show if userId matches.
+             return r.userId.toString() === currentUserId?.toString();
+          });
+          mockReports = [...userSpecificReports, ...mockReports];
+        }
+      }
+
       setReports(mockReports)
     } catch (err) {
       setError("Failed to load reports. Please try again.")
@@ -109,6 +124,7 @@ export default function MyReports() {
               <ReportCard
                 report={report}
                 onUpdateStatus={handleUpdateStatus}
+                isCitizen={true}
               />
             </motion.div>
           ))}
