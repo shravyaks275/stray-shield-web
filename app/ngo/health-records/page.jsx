@@ -15,12 +15,12 @@ export default function HealthRecordsPage() {
 
         <Navbar />
 
-        <main className="max-w-[90rem] mx-auto px-4 sm:px-6 lg:px-8 pt-36 pb-20">
-          <div className="mb-12 text-center sm:text-left">
+        <main className="max-w-[90rem] mx-auto px-4 sm:px-6 lg:px-8 pt-5 pb-2">
+          <div className="mb-2 text-center sm:text-left">
             <motion.h1
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
-              className="text-4xl sm:text-5xl lg:text-6xl font-black text-foreground mb-4 tracking-tight"
+              className="text-4xl sm:text-5xl lg:text-6xl font-black text-foreground mb-3 tracking-tight"
             >
               Veterinary <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary">Health Records</span>
             </motion.h1>

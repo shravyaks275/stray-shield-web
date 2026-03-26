@@ -38,10 +38,11 @@ export default function Navbar() {
   }
 
   const navLinks = [
-    { name: "Home", href: "/", show: true },
+    { name: "Home", href: "/", show: !isLoggedIn },
     { name: "Adopt", href: "/citizen-dashboard", show: isLoggedIn && userType === "citizen" },
     { name: "Report", href: "/report", show: isLoggedIn && userType === "citizen" },
     { name: "My Reports", href: "/my-reports", show: isLoggedIn && userType === "citizen" },
+    { name: "Profile", href: "/profile", show: isLoggedIn },
     { name: "Dashboard", href: "/ngo-dashboard", show: isLoggedIn && userType === "ngo" },
     { name: "Adoption Board", href: "/ngo/adoption-board", show: isLoggedIn && userType === "ngo" },
     { name: "Health Records", href: "/ngo/health-records", show: isLoggedIn && userType === "ngo" }

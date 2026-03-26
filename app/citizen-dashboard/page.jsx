@@ -5,6 +5,7 @@ import Navbar from "@/components/Navbar";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import DogCard, { calculateMatch } from "@/components/DogCard";
 import { motion, AnimatePresence } from "framer-motion";
+import { initialDogs } from "@/lib/mockData";
 
 export default function CitizenDashboard() {
   const [dogs, setDogs] = useState([]);
@@ -24,118 +25,18 @@ export default function CitizenDashboard() {
   const fetchDogs = async () => {
     setLoading(true);
 
-    // 🔒 Backend disabled — using mock data
-    const mockDogs = [
-      {
-        id: 1,
-        sex: "Female",
-        name: "Zoe",
-        age: "1 year",
-        breed: "Indie",
-        status: "Available",
-        location: "Indiranagar",
-        images: ["/images/zoe_1.jpg", "/images/zoe_2.jpg", "/images/zoe_3.jpg"],
-        traits: { energy: "high", sociability: "friendly", trainability: "easy" },
-      },
-      {
-        id: 2,
-        sex: "Male",
-        name: "Pogo",
-        age: "3 years 4 months",
-        breed: "Indie",
-        status: "Available",
-        location: "Jigani",
-        images: ["/images/pogo_1.jpg", "/images/pogo_2.jpg", "/images/pogo_3.jpg"],
-        traits: { energy: "medium", sociability: "shy" }
-      },
-      {
-        id: 3,
-        sex: "Male",
-        name: "Milo",
-        age: "2 years",
-        breed: "Indie",
-        status: "Available",
-        location: "Kudlu Gate",
-        images: ["/images/milo_1.jpg", "/images/milo_2.jpg"],
-        traits: { energy: "low", sociability: "friendly" }
-      },
-      {
-        id: 4,
-        sex: "Male",
-        name: "Charlie",
-        age: "3 years",
-        breed: "Indie",
-        status: "Available",
-        location: "Vijaynagar",
-        images: ["/images/charlie.jpg"],
-        traits: { energy: "medium", sociability: "shy" }
-      },
-      {
-        id: 5,
-        sex: "Male",
-        name: "Max",
-        age: "4 years 6 months",
-        breed: "Indie",
-        status: "Available",
-        location: "Jigani",
-        images: ["/images/max.jpg"],
-        traits: { energy: "high", sociability: "friendly" }
-      },
-      {
-        id: 6,
-        sex: "Female",
-        name: "Bella",
-        age: "8 months",
-        breed: "Indie",
-        status: "Available",
-        location: "Hosa Road",
-        images: ["/images/bella.jpg"],
-        traits: { energy: "medium", sociability: "shy" }
-      },
-      {
-        id: 7,
-        sex: "Male",
-        name: "Buddy",
-        age: "2 years",
-        breed: "Indie",
-        status: "Available",
-        location: "Anekal",
-        images: ["/images/buddy.jpeg"],
-        traits: { energy: "low", sociability: "friendly" }
-      },
-      {
-        id: 8,
-        sex: "Female",
-        name: "Maya",
-        age: "1 year 2 months",
-        breed: "Indie",
-        status: "Available",
-        location: "E-city",
-        images: ["/images/maya_1.jpg"],
-        traits: { energy: "high", sociability: "shy" }
-      },
-      {
-        id: 9,
-        sex: "Male",
-        name: "Coco",
-        age: "4 Months",
-        breed: "Indie",
-        status: "Available",
-        location: "Hebbal",
-        images: ["/images/coco.jpeg"],
-        traits: { energy: "medium", sociability: "friendly" }
-      },
-    ];
+    let dogData = initialDogs;
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("straydogs_data_v3");
+      if (saved) {
+        dogData = JSON.parse(saved);
+      } else {
+        localStorage.setItem("straydogs_data_v3", JSON.stringify(initialDogs));
+      }
+    }
 
-    setDogs(mockDogs.map(d => ({
-      ...d,
-      healthRecords: [
-        { date: "2025-01-15", type: "Vaccination", notes: "Rabies, Core vaccines administered", by: "Ngo Vet", status: "completed" },
-        { date: "2025-02-10", type: "Health Check", notes: "General checkup - healthy", by: "City Clinic", status: "cleared" },
-        { date: "2024-11-20", type: "Sterilization", notes: "Neutered/Spayed", by: "Rescue Shelter", status: "cleared" }
-      ],
-      aiHealthCheck: { label: "Normal Case", confidence: "95%" }
-    })));
+    // Only show dogs marked as 'Available'
+    setDogs(dogData.filter(d => d.status === "Available"));
     setLoading(false);
   };
 
@@ -156,7 +57,7 @@ export default function CitizenDashboard() {
 
   const filteredDogs = filter === "all" 
     ? dogs 
-    : dogs.filter(dog => calculateMatch(dog, userPreferences) >= 3);
+    : dogs.filter(dog => calculateMatch(dog, userPreferences) >= 5);
 
   return (
     <ProtectedRoute userType="citizen">
@@ -244,26 +145,21 @@ export default function CitizenDashboard() {
                 </select>
               </div>
             </div>
-            </motion.div>
-            <motion.div 
-            initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
-            className="mb-3 p-2 lg:p-2 bg-secondary/10 border border-white/10 rounded-[2rem] "
-          >
-            <div className="flex gap-2 p-1.5 bg-background/50 rounded-2xl border border-white/5 w-fit">
-              <button 
-                onClick={() => setFilter("all")} 
-                className={`px-5 py-2 text-sm font-bold rounded-xl transition-all ${filter === "all" ? "bg-primary text-primary-foreground shadow-sm" : "hover:text-foreground text-muted-foreground"}`}
-              >
-                All Dogs
-              </button>
+            <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t border-border/50">
               <button 
                 onClick={() => setFilter("for_me")} 
-                className={`px-5 py-2 text-sm font-bold rounded-xl transition-all ${filter === "for_me" ? "bg-primary text-primary-foreground shadow-sm" : "hover:text-foreground text-muted-foreground"}`}
+                className={`flex-1 px-6 py-3 rounded-xl font-black text-sm transition-all shadow-md active:scale-95 ${filter === "for_me" ? "bg-primary text-primary-foreground ring-2 ring-primary/30 ring-offset-2 ring-offset-background" : "bg-primary/90 hover:bg-primary text-primary-foreground"}`}
               >
-                Best Matches For Me ✨
+                Apply Matches ✨
+              </button>
+              <button 
+                onClick={() => setFilter("all")} 
+                className={`flex-1 sm:flex-none px-6 py-3 rounded-xl font-bold text-sm transition-all border ${filter === "all" ? "bg-secondary text-secondary-foreground border-transparent shadow-sm" : "bg-background/40 hover:bg-background/80 text-foreground border-border/60"}`}
+              >
+                View All Dogs
               </button>
             </div>
-          </motion.div>
+            </motion.div>
 
           {loading ? (
             <div className="flex flex-col items-center justify-center py-20">

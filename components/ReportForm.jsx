@@ -100,6 +100,18 @@ export default function ReportForm() {
       // Step 3: Save report via backend
       await createReport(reportData)
 
+      // Step 3.5: Save to LocalStorage for immediate display in My Reports
+      const newReportEntry = {
+        ...reportData,
+        id: Date.now(),
+        status: "pending",
+        timestamp: new Date().toISOString(),
+        title: `Reported dog at ${formData.location || "Unknown area"}`,
+        aiStatus: aiResults.length > 0 ? aiResults[0] : "Pending Review",
+      }
+      const existingReports = JSON.parse(localStorage.getItem("stray_reports_data") || "[]")
+      localStorage.setItem("stray_reports_data", JSON.stringify([newReportEntry, ...existingReports]))
+
       setSuccess("Report submitted successfully! Thank you for helping.")
       setFormData({
         location: "",

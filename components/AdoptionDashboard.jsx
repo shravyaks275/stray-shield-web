@@ -14,40 +14,23 @@ export default function AdoptionBoard() {
         setLoading(true);
         setError("");
         try {
-            // 🔒 Backend disabled for API dogs — using mock data
-            const mockDogs = [
-                {
-                    dogId: 101,
-                    name: "Buddy",
-                    breed: "Indie Mix",
-                    age: 3,
-                    status: "Available",
-                    interestedUsers: [
-                        { userName: "Alice Smith" },
-                        { userName: "Bob Johnson" }
-                    ]
-                },
-                {
-                    dogId: 102,
-                    name: "Max",
-                    breed: "Labrador",
-                    age: 5,
-                    status: "Adopted",
-                    interestedUsers: [
-                        { userName: "Charlie Brown" }
-                    ]
-                },
-                {
-                    dogId: 103,
-                    name: "Luna",
-                    breed: "Beagle",
-                    age: 2,
-                    status: "Available",
-                    interestedUsers: []
-                }
-            ];
+            // Load unified mock data
+            let mockDogs = [];
+            if (typeof window !== "undefined") {
+              const saved = localStorage.getItem("straydogs_data_v3");
+              if (saved) {
+                mockDogs = JSON.parse(saved);
+              }
+            }
+            
+            // Map legacy fields into standard format if missing
+            const mergedDogs = mockDogs.map(d => ({
+                ...d,
+                dogId: d.id, // map `id` to `dogId` for backward compat
+                interestedUsers: d.interestedUsers || (d.status === "Reviewing" ? [{userName: "Review Applicant"}] : [])
+            }));
 
-            setDogs(mockDogs);
+            setDogs(mergedDogs);
         } catch (err) {
             setError("Failed to load dogs. Please try again.");
             console.error("[v0] AdoptionBoard fetch error:", err);
@@ -62,12 +45,15 @@ export default function AdoptionBoard() {
 
     const updateDogStatus = async (dogId, newStatus) => {
         try {
-            // Mock the update request
-            setDogs((prev) =>
-                prev.map((dog) =>
+            setDogs((prev) => {
+                const updated = prev.map((dog) =>
                     dog.dogId === dogId ? { ...dog, status: newStatus } : dog
-                )
-            );
+                );
+                // Also update localStorage
+                const mappedBack = updated.map(d => ({...d, id: d.dogId}));
+                localStorage.setItem("straydogs_data_v3", JSON.stringify(mappedBack));
+                return updated;
+            });
         } catch (err) {
             setError("Failed to update dog status.");
             console.error("[v0] Status update error:", err);

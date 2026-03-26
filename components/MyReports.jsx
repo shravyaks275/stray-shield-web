@@ -22,7 +22,7 @@ export default function MyReports() {
       // 🔒 Backend disabled — using mock data for UI demo
       // const data = await getMyReports() 
       
-      const mockReports = [
+      let mockReports = [
         {
           id: 1,
           title: "Injured dog near market",
@@ -33,6 +33,15 @@ export default function MyReports() {
           aiStatus: "Possible Injury",
         },
       ];
+
+      if (typeof window !== "undefined") {
+        const local = localStorage.getItem("stray_reports_data");
+        if (local) {
+          const parsed = JSON.parse(local);
+          mockReports = [...parsed, ...mockReports];
+        }
+      }
+
       setReports(mockReports)
     } catch (err) {
       setError("Failed to load reports. Please try again.")
