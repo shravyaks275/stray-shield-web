@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Navbar from "@/components/Navbar";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import { getUserProfile } from "@/utils/api";
 import { motion, AnimatePresence } from "framer-motion";
 import { User, Mail, Phone, MapPin, Save, Activity, Camera, Edit2 } from "lucide-react";
 
@@ -20,25 +21,75 @@ export default function ProfilePage() {
     bio: "Animal lover and software engineer."
   });
 
+  const [activityData, setActivityData] = useState([
+    { month: "Nov", value: 35 },
+    { month: "Dec", value: 45 },
+    { month: "Jan", value: 25 },
+    { month: "Feb", value: 65 },
+    { month: "Mar", value: 50 },
+    { month: "Apr", value: 85 },
+  ]);
+
   useEffect(() => {
-    // Load local storage profile data
-    if (typeof window !== "undefined") {
-      setUserType(localStorage.getItem("userType"));
-      const savedProfile = localStorage.getItem("userProfile_v1");
-      if (savedProfile) {
-        setProfile(JSON.parse(savedProfile));
-      } else {
-        // Init mock
-        const defaultProfile = {
-           name: localStorage.getItem("userType") === "ngo" ? "Stray Shield Rescue" : "John Doe",
-           email: "contact@strayshield.com",
-           phone: "+91 90000 12345",
-           address: "Bangalore, India",
-           bio: localStorage.getItem("userType") === "ngo" ? "Official NGO partner dedicated to rescuing strays." : "Active volunteer and dog lover."
-        };
-        setProfile(defaultProfile);
+    // Load profile data
+    const fetchProfile = async () => {
+      try {
+        if (typeof window !== "undefined") {
+          const type = localStorage.getItem("userType");
+          setUserType(type);
+          const userId = localStorage.getItem("userId");
+
+          // Update activity graph based on user's local reports
+          const localReports = JSON.parse(localStorage.getItem("stray_reports_data") || "[]");
+          const userReports = localReports.filter(r => r.userId === parseInt(userId, 10) || r.userId === userId);
+          
+          if (userReports.length > 0) {
+            // Give a slight bump to the current month to reflect dynamic activity
+            setActivityData(prev => {
+              const newData = [...prev];
+              newData[newData.length - 1].value = Math.min(100, newData[newData.length - 1].value + (userReports.length * 10));
+              return newData;
+            });
+          }
+
+          // Fetch from backend
+          const res = await getUserProfile();
+          if (res && res.user) {
+            setProfile({
+              name: res.user.name || "Stray Shield User",
+              email: res.user.email || "contact@strayshield.com",
+              phone: res.user.phone || "Not provided",
+              address: res.user.address || "Location not provided",
+              bio: type === "ngo" 
+                ? (res.user.organization_name || "Official NGO partner dedicated to rescuing strays.") 
+                : "Active volunteer and dog lover."
+            });
+            return;
+          }
+        }
+      } catch (error) {
+        console.error("Failed to fetch profile from backend, falling back to local/mock:", error);
       }
-    }
+      
+      // Fallback
+      if (typeof window !== "undefined") {
+        const savedProfile = localStorage.getItem("userProfile_v1");
+        if (savedProfile) {
+          setProfile(JSON.parse(savedProfile));
+        } else {
+          const defaultProfile = {
+             name: localStorage.getItem("userType") === "ngo" ? "Stray Shield Rescue" : "John Doe",
+             email: "contact@strayshield.com",
+             phone: "+91 90000 12345",
+             address: "Bangalore, India",
+             bio: localStorage.getItem("userType") === "ngo" ? "Official NGO partner dedicated to rescuing strays." : "Active volunteer and dog lover."
+          };
+          setProfile(defaultProfile);
+        }
+      }
+    };
+    
+    fetchProfile();
   }, []);
 
   const handleChange = (e) => {
@@ -196,15 +247,7 @@ export default function ProfilePage() {
                 </div>
 
                 <div className="flex items-end justify-between h-48 gap-2 px-4 pb-2 border-b border-white/10">
-                  {/* Mock Data Bars */}
-                  {[
-                    { month: "Oct", value: 30 },
-                    { month: "Nov", value: 45 },
-                    { month: "Dec", value: 20 },
-                    { month: "Jan", value: 70 },
-                    { month: "Feb", value: 55 },
-                    { month: "Mar", value: 90 },
-                  ].map((data, i) => (
+                  {activityData.map((data, i) => (
                     <div key={i} className="flex flex-col items-center gap-3 group w-1/6">
                       <div className="w-full max-w-[40px] relative flex justify-center">
                         {/* Tooltip */}

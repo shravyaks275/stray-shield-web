@@ -104,6 +104,7 @@ export default function ReportForm() {
       const newReportEntry = {
         ...reportData,
         id: Date.now(),
+        userId: localStorage.getItem("userId"),
         status: "pending",
         timestamp: new Date().toISOString(),
         title: `Reported dog at ${formData.location || "Unknown area"}`,

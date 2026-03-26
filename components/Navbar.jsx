@@ -42,10 +42,10 @@ export default function Navbar() {
     { name: "Adopt", href: "/citizen-dashboard", show: isLoggedIn && userType === "citizen" },
     { name: "Report", href: "/report", show: isLoggedIn && userType === "citizen" },
     { name: "My Reports", href: "/my-reports", show: isLoggedIn && userType === "citizen" },
-    { name: "Profile", href: "/profile", show: isLoggedIn },
     { name: "Dashboard", href: "/ngo-dashboard", show: isLoggedIn && userType === "ngo" },
     { name: "Adoption Board", href: "/ngo/adoption-board", show: isLoggedIn && userType === "ngo" },
-    { name: "Health Records", href: "/ngo/health-records", show: isLoggedIn && userType === "ngo" }
+    { name: "Health Records", href: "/ngo/health-records", show: isLoggedIn && userType === "ngo" },
+    { name: "Profile", href: "/profile", show: isLoggedIn }
   ].filter(link => link.show)
 
   return (
@@ -72,7 +72,7 @@ export default function Navbar() {
           </Link>
 
           {/* Desktop Menu */}
-          <div className="hidden md:flex items-center gap-8">
+          <div className="hidden md:flex items-center gap-5">
             <div className="flex items-center gap-2 px-4 py-2 rounded-full">
               {navLinks.map((link) => (
                 <Link
@@ -94,10 +94,10 @@ export default function Navbar() {
             </div>
 
             {!isLoggedIn ? (
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
                 <Link
                   href="/login"
-                  className="text-base font-bold text-foreground hover:text-primary transition-colors"
+                  className="px-4 py-2 text-base font-bold text-foreground hover:text-primary transition-colors"
                 >
                   Login
                 </Link>

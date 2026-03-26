@@ -36,9 +36,15 @@ export default function MyReports() {
 
       if (typeof window !== "undefined") {
         const local = localStorage.getItem("stray_reports_data");
+        const currentUserId = localStorage.getItem("userId");
         if (local) {
           const parsed = JSON.parse(local);
-          mockReports = [...parsed, ...mockReports];
+          // Only show reports that explicitly belong to this user (or don't have a userId for legacy mock reports)
+          const userSpecificReports = parsed.filter(r => {
+             if (!r.userId) return false; // Filter out if another user created it, wait if it has no userId and we want to hide it from others. Let's strictly only show if userId matches.
+             return r.userId.toString() === currentUserId?.toString();
+          });
+          mockReports = [...userSpecificReports, ...mockReports];
         }
       }
 

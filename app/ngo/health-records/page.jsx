@@ -15,8 +15,8 @@ export default function HealthRecordsPage() {
 
         <Navbar />
 
-        <main className="max-w-[90rem] mx-auto px-4 sm:px-6 lg:px-8 pt-5 pb-2">
-          <div className="mb-2 text-center sm:text-left">
+        <main className="max-w-[90rem] mx-auto px-4 sm:px-6 lg:px-8 pt-27 pb-4">
+          <div className="mb-4 text-center sm:text-left">
             <motion.h1
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}

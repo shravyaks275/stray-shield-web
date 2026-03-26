@@ -94,69 +94,91 @@ export default function CitizenDashboard() {
             initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
             className="mb-2 p-4 bg-secondary/10 border border-white/10 rounded-[2rem] backdrop-blur-md shadow-lg"
           >
-            <h3 className="text-xl font-black text-foreground mb-4 tracking-tight">Your Match Profile</h3>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-              <div>
-                <label className="text-xs font-bold text-muted-foreground uppercase px-2 mb-2 block">Lifestyle</label>
-                <select 
-                  value={userPreferences.lifestyle} 
-                  onChange={(e) => setUserPreferences({...userPreferences, lifestyle: e.target.value})}
-                  className="w-full bg-background/50 border border-border/50 rounded-xl px-2 pr-8 py-2.5 text-sm font-medium text-foreground focus:ring-2 focus:ring-primary focus:outline-none transition-shadow"
-                >
-                  <option value="active">Active</option>
-                  <option value="moderate">Moderate</option>
-                  <option value="relaxed">Relaxed</option>
-                </select>
+            <h3 className="text-xl font-black text-foreground mb-4 tracking-tight">Match Personality</h3>
+            
+            {/* Row 1: Dropdowns + Apply */}
+            <div className="flex flex-col md:flex-row gap-4 mb-4 items-end border-b border-border/50 pb-6">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 flex-grow w-full">
+                <div>
+                  <label className="text-xs font-bold text-muted-foreground uppercase px-2 mb-2 block">Lifestyle</label>
+                  <select 
+                    value={userPreferences.lifestyle} 
+                    onChange={(e) => setUserPreferences({...userPreferences, lifestyle: e.target.value})}
+                    className="w-full bg-background/50 border border-border/50 rounded-xl px-2 pr-8 py-2.5 text-sm font-medium text-foreground focus:ring-2 focus:ring-primary focus:outline-none transition-shadow"
+                  >
+                    <option value="active">Active</option>
+                    <option value="moderate">Moderate</option>
+                    <option value="relaxed">Relaxed</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-muted-foreground px-2 uppercase mb-2 block">Household</label>
+                  <select 
+                    value={userPreferences.household} 
+                    onChange={(e) => setUserPreferences({...userPreferences, household: e.target.value})}
+                    className="w-full bg-background/50 border border-border/50 rounded-xl px-2 pr-8 py-2.5 text-sm font-medium text-foreground focus:ring-2 focus:ring-primary focus:outline-none transition-shadow"
+                  >
+                    <option value="single">Single</option>
+                    <option value="family">Family (Kids)</option>
+                    <option value="couple">Couple</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-muted-foreground uppercase px-2 mb-2 block">Experience</label>
+                  <select 
+                    value={userPreferences.experience} 
+                    onChange={(e) => setUserPreferences({...userPreferences, experience: e.target.value})}
+                    className="w-full bg-background/50 border border-border/50 rounded-xl px-2 pr-8 py-2.5 text-sm font-medium text-foreground focus:ring-2 focus:ring-primary focus:outline-none transition-shadow"
+                  >
+                    <option value="beginner">Beginner</option>
+                    <option value="intermediate">Intermediate</option>
+                    <option value="expert">Expert</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-muted-foreground uppercase px-2 mb-2 block">Space</label>
+                  <select 
+                    value={userPreferences.space} 
+                    onChange={(e) => setUserPreferences({...userPreferences, space: e.target.value})}
+                    className="w-full bg-background/50 border border-border/50 rounded-xl px-2 pr-8 py-2.5 text-sm font-medium text-foreground focus:ring-2 focus:ring-primary focus:outline-none transition-shadow"
+                  >
+                    <option value="apartment">Apartment</option>
+                    <option value="house">House w/ Yard</option>
+                    <option value="farm">Farm / Large Land</option>
+                  </select>
+                </div>
               </div>
-              <div>
-                <label className="text-xs font-bold text-muted-foreground px-2 uppercase mb-2 block">Household</label>
-                <select 
-                  value={userPreferences.household} 
-                  onChange={(e) => setUserPreferences({...userPreferences, household: e.target.value})}
-                  className="w-full bg-background/50 border border-border/50 rounded-xl px-2 pr-8 py-2.5 text-sm font-medium text-foreground focus:ring-2 focus:ring-primary focus:outline-none transition-shadow"
-                >
-                  <option value="single">Single</option>
-                  <option value="family">Family (Kids)</option>
-                  <option value="couple">Couple</option>
-                </select>
-              </div>
-              <div>
-                <label className="text-xs font-bold text-muted-foreground uppercase px-2 mb-2 block">Experience</label>
-                <select 
-                  value={userPreferences.experience} 
-                  onChange={(e) => setUserPreferences({...userPreferences, experience: e.target.value})}
-                  className="w-full bg-background/50 border border-border/50 rounded-xl px-2 pr-8 py-2.5 text-sm font-medium text-foreground focus:ring-2 focus:ring-primary focus:outline-none transition-shadow"
-                >
-                  <option value="beginner">Beginner</option>
-                  <option value="intermediate">Intermediate</option>
-                  <option value="expert">Expert</option>
-                </select>
-              </div>
-              <div>
-                <label className="text-xs font-bold text-muted-foreground uppercase px-2 mb-2 block">Space</label>
-                <select 
-                  value={userPreferences.space} 
-                  onChange={(e) => setUserPreferences({...userPreferences, space: e.target.value})}
-                  className="w-full bg-background/50 border border-border/50 rounded-xl px-2 pr-8 py-2.5 text-sm font-medium text-foreground focus:ring-2 focus:ring-primary focus:outline-none transition-shadow"
-                >
-                  <option value="apartment">Apartment</option>
-                  <option value="house">House w/ Yard</option>
-                  <option value="farm">Farm / Large Land</option>
-                </select>
-              </div>
-            </div>
-            <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t border-border/50">
+              
               <button 
                 onClick={() => setFilter("for_me")} 
-                className={`flex-1 px-6 py-3 rounded-xl font-black text-sm transition-all shadow-md active:scale-95 ${filter === "for_me" ? "bg-primary text-primary-foreground ring-2 ring-primary/30 ring-offset-2 ring-offset-background" : "bg-primary/90 hover:bg-primary text-primary-foreground"}`}
+                className="h-[42px] px-8 rounded-xl font-bold text-sm bg-primary text-primary-foreground hover:shadow-[0_0_20px_-5px_rgba(var(--primary),0.5)] transition-all flex-shrink-0 w-full md:w-auto"
               >
-                Apply Matches ✨
+                Apply
               </button>
+            </div>
+
+            {/* Row 2: View Toggles */}
+            <div className="flex gap-3 pt-2">
               <button 
                 onClick={() => setFilter("all")} 
-                className={`flex-1 sm:flex-none px-6 py-3 rounded-xl font-bold text-sm transition-all border ${filter === "all" ? "bg-secondary text-secondary-foreground border-transparent shadow-sm" : "bg-background/40 hover:bg-background/80 text-foreground border-border/60"}`}
+                className={`flex-1 sm:flex-none px-6 py-2.5 rounded-xl font-bold text-sm transition-all border ${
+                  filter === "all" 
+                    ? "bg-secondary text-secondary-foreground border-transparent shadow-sm" 
+                    : "bg-background/40 hover:bg-background/80 text-foreground border-border/60"
+                }`}
               >
                 View All Dogs
+              </button>
+              
+              <button 
+                onClick={() => setFilter("for_me")} 
+                className={`flex-1 sm:flex-none px-6 py-2.5 rounded-xl font-bold text-sm transition-all border flex items-center justify-center gap-2 ${
+                  filter === "for_me" 
+                    ? "bg-secondary text-secondary-foreground border-transparent shadow-sm" 
+                    : "bg-background/40 hover:bg-background/80 text-foreground border-border/60"
+                }`}
+              >
+                For Me ✨
               </button>
             </div>
             </motion.div>
