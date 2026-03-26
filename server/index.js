@@ -1,3 +1,5 @@
+// ================= ORIGINAL CODE =================
+
 // Mock users (temporary, before DB)
 let mockUsers = [
   { id: 1, email: "citizen@example.com", password: "1234", userType: "citizen", name: "John Citizen" },
@@ -12,6 +14,14 @@ require('dotenv').config();
 
 const pool = require('./config/database');
 
+// ================= AI ADDITIONS (SAFE) =================
+const tf = require('@tensorflow/tfjs');
+const mobilenet = require('@tensorflow-models/mobilenet');
+const knnClassifier = require('@tensorflow-models/knn-classifier');
+const Jimp = require('jimp');
+const fs = require('fs');
+const path = require('path');
+
 const app = express();
 const PORT = process.env.PORT || 3001;
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
@@ -21,7 +31,7 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// JWT Middleware
+// ================= JWT =================
 function verifyToken(req, res, next) {
   const token = req.headers.authorization?.split(' ')[1];
   
@@ -38,74 +48,60 @@ function verifyToken(req, res, next) {
   }
 }
 
-// Auth Endpoints
-// app.post('/api/auth/signup', async (req, res) => {
-//   try {
-//     const { email, password, name, phone, userType, organizationName, registrationNumber, address } = req.body;
+// ================= AI MODEL =================
+let mobilenetModel;
+let classifier;
 
-//     const userExists = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
-//     if (userExists.rows.length > 0) {
-//       return res.status(400).json({ message: 'User already exists' });
-//     }
+async function loadAIModel() {
+  try {
+    mobilenetModel = await mobilenet.load();
+    classifier = knnClassifier.create();
 
-//     // Hash password
-//     const hashedPassword = await bcrypt.hash(password, 10);
+    const datasetPath = path.join(__dirname, '../ml/health_model/classifier.json');
+    const dataset = JSON.parse(fs.readFileSync(datasetPath));
 
-//     const result = await pool.query(
-//       'INSERT INTO users (email, password, name, phone, user_type, organization_name, registration_number, address) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id, email, user_type',
-//       [email, hashedPassword, name, phone, userType, organizationName || null, registrationNumber || null, address || null]
-//     );
+    const tensorObj = {};
+    Object.entries(dataset).forEach(([label, data]) => {
+      tensorObj[label] = tf.tensor2d(data);
+    });
 
-//     const newUser = result.rows[0];
-//     const token = jwt.sign({ id: newUser.id, email: newUser.email, userType: newUser.user_type }, JWT_SECRET, { expiresIn: '7d' });
+    classifier.setClassifierDataset(tensorObj);
 
-//     res.json({
-//       token,
-//       userId: newUser.id,
-//       userType: newUser.user_type,
-//       message: 'Signup successful',
-//     });
-//   } catch (err) {
-//     console.error('[v0] Signup error:', err);
-//     res.status(500).json({ message: 'Signup failed', error: err.message });
-//   }
-// });
+    console.log("✅ AI Model Loaded");
+  } catch (err) {
+    console.error("❌ AI Load Error:", err);
+  }
+}
 
-// app.post('/api/auth/login', async (req, res) => {
-//   try {
-//     const { email, password, userType } = req.body;
+// ================= IMAGE HANDLER =================
+async function processImage(imagePath) {
+  try {
+    const image = await Jimp.read(imagePath);
+    image.resize(224, 224);
 
-//     const result = await pool.query('SELECT * FROM users WHERE email = $1 AND user_type = $2', [email, userType]);
-//     const user = result.rows[0];
+    const { data, width, height } = image.bitmap;
+    const buffer = [];
 
-//     if (!user) {
-//       return res.status(401).json({ message: 'Invalid credentials' });
-//     }
+    for (let i = 0; i < data.length; i += 4) {
+      buffer.push(data[i]);
+      buffer.push(data[i + 1]);
+      buffer.push(data[i + 2]);
+    }
 
-//     const isPasswordValid = await bcrypt.compare(password, user.password);
-//     if (!isPasswordValid) {
-//       return res.status(401).json({ message: 'Invalid credentials' });
-//     }
+    return tf.tensor3d(buffer, [height, width, 3])
+      .toFloat()
+      .div(255.0)
+      .expandDims(0);
 
-//     const token = jwt.sign({ id: user.id, email: user.email, userType: user.user_type }, JWT_SECRET, { expiresIn: '7d' });
+  } catch (err) {
+    throw new Error("Invalid or unsupported image");
+  }
+}
 
-//     res.json({
-//       token,
-//       userId: user.id,
-//       userType: user.user_type,
-//       message: 'Login successful',
-//     });
-//   } catch (err) {
-//     console.error('[v0] Login error:', err);
-//     res.status(500).json({ message: 'Login failed', error: err.message });
-//   }
-// });
-
-// signup Endpoints (Mock)
+// ================= AUTH =================
 app.post('/api/auth/signup', (req, res) => {
   const { email, password, name, phone, userType } = req.body;
 
-  // Check if user already exists
   const existingUser = mockUsers.find((u) => u.email === email && u.userType === userType);
   if (existingUser) {
     return res.status(400).json({ message: 'User already exists (mock)' });
@@ -114,7 +110,7 @@ app.post('/api/auth/signup', (req, res) => {
   const newUser = {
     id: mockUsers.length + 1,
     email,
-    password, // ⚠️ plain text for now
+    password,
     name,
     phone,
     userType,
@@ -134,7 +130,6 @@ app.post('/api/auth/signup', (req, res) => {
   });
 });
 
-// Login Endpoints (Mock)
 app.post('/api/auth/login', (req, res) => {
   const { email, password, userType } = req.body;
 
@@ -158,27 +153,7 @@ app.post('/api/auth/login', (req, res) => {
   });
 });
 
-
-// Report Endpoints
-// app.post('/api/reports/create', verifyToken, async (req, res) => {
-//   try {
-//     const { location, latitude, longitude, description, contactName, contactPhone, contactEmail, imageUrl } = req.body;
-
-//     const result = await pool.query(
-//       'INSERT INTO reports (user_id, location, latitude, longitude, description, contact_name, contact_phone, contact_email, image_url, status) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *',
-//       [req.user.id, location, latitude || null, longitude || null, description, contactName, contactPhone, contactEmail, imageUrl || null, 'pending']
-//     );
-
-//     res.json({
-//       message: 'Report created successfully',
-//       report: result.rows[0],
-//     });
-//   } catch (err) {
-//     console.error('[v0] Create report error:', err);
-//     res.status(500).json({ message: 'Failed to create report', error: err.message });
-//   }
-// });
-
+// ================= REPORT =================
 app.post('/api/reports/create', verifyToken, (req, res) => {
   const report = req.body;
   res.json({
@@ -192,178 +167,47 @@ app.post('/api/reports/create', verifyToken, (req, res) => {
   });
 });
 
-app.get('/api/reports', verifyToken, async (req, res) => {
+// ================= 🔥 AI CLASSIFY =================
+app.post('/api/classify', async (req, res) => {
   try {
-    const { status } = req.query;
-    let query = 'SELECT * FROM reports';
-    const params = [];
+    const { imagePath } = req.body;
 
-    if (req.user.userType === 'citizen') {
-      query += ' WHERE user_id = $1';
-      params.push(req.user.id);
+    if (!imagePath) {
+      return res.status(400).json({ message: "Image path required" });
     }
 
-    if (status && status !== 'all') {
-      query += params.length > 0 ? ' AND status = $2' : ' WHERE status = $1';
-      params.push(status);
-    }
+    const imgTensor = await processImage(imagePath);
 
-    query += ' ORDER BY created_at DESC';
-
-    const result = await pool.query(query, params);
+    const activation = mobilenetModel.infer(imgTensor, true);
+    const result = await classifier.predictClass(activation);
 
     res.json({
-      reports: result.rows,
+      status: result.label,
+      confidence: result.confidences[result.label]
     });
+
   } catch (err) {
-    console.error('[v0] Fetch reports error:', err);
-    res.status(500).json({ message: 'Failed to fetch reports', error: err.message });
+    console.error("❌ Classification Error:", err.message);
+    res.status(500).json({ message: err.message });
   }
 });
 
-app.get('/api/reports/:id', verifyToken, async (req, res) => {
-  try {
-    const { id } = req.params;
-
-    const result = await pool.query('SELECT * FROM reports WHERE id = $1', [id]);
-    const report = result.rows[0];
-
-    if (!report) {
-      return res.status(404).json({ message: 'Report not found' });
-    }
-
-    if (req.user.userType === 'citizen' && report.user_id !== req.user.id) {
-      return res.status(403).json({ message: 'Unauthorized' });
-    }
-
-    res.json({ report });
-  } catch (err) {
-    console.error('[v0] Fetch report error:', err);
-    res.status(500).json({ message: 'Failed to fetch report', error: err.message });
-  }
-});
-
-app.put('/api/reports/:id', verifyToken, async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { status } = req.body;
-
-    if (req.user.userType !== 'ngo') {
-      return res.status(403).json({ message: 'Only NGOs can update reports' });
-    }
-
-    const result = await pool.query(
-      'UPDATE reports SET status = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2 RETURNING *',
-      [status, id]
-    );
-
-    if (result.rows.length === 0) {
-      return res.status(404).json({ message: 'Report not found' });
-    }
-
-    res.json({
-      message: 'Report updated successfully',
-      report: result.rows[0],
-    });
-  } catch (err) {
-    console.error('[v0] Update report error:', err);
-    res.status(500).json({ message: 'Failed to update report', error: err.message });
-  }
-});
-
-app.delete('/api/reports/:id', verifyToken, async (req, res) => {
-  try {
-    const { id } = req.params;
-
-    const reportResult = await pool.query('SELECT * FROM reports WHERE id = $1', [id]);
-    const report = reportResult.rows[0];
-
-    if (!report) {
-      return res.status(404).json({ message: 'Report not found' });
-    }
-
-    if (req.user.userType === 'citizen' && report.user_id !== req.user.id) {
-      return res.status(403).json({ message: 'Unauthorized' });
-    }
-
-    await pool.query('DELETE FROM reports WHERE id = $1', [id]);
-
-    res.json({ message: 'Report deleted successfully' });
-  } catch (err) {
-    console.error('[v0] Delete report error:', err);
-    res.status(500).json({ message: 'Failed to delete report', error: err.message });
-  }
-});
-
-// User Profile Endpoint
-app.get('/api/users/profile', verifyToken, async (req, res) => {
-  try {
-    const result = await pool.query('SELECT id, email, name, phone, user_type, organization_name, registration_number, address, created_at FROM users WHERE id = $1', [req.user.id]);
-    const user = result.rows[0];
-
-    if (!user) {
-      return res.status(404).json({ message: 'User not found' });
-    }
-
-    res.json({ user });
-  } catch (err) {
-    console.error('[v0] Fetch profile error:', err);
-    res.status(500).json({ message: 'Failed to fetch profile', error: err.message });
-  }
-});
-
-// Health Check
+// ================= HEALTH =================
 app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', message: 'Stray Shield API is running' });
 });
 
-app.listen(PORT, () => {
-  console.log(`Stray Shield API running on http://localhost:${PORT}`);
-  console.log('Connected to PostgreSQL database');
-});
-
-// Mock Dogs (temporary, before DB)
+// ================= DOGS =================
 let dogs = require('./data/dogs.json');
 
-// Get all dogs
 app.get('/api/dogs', verifyToken, (req, res) => {
   res.json(dogs);
 });
 
-// Add interest in a dog
-app.post('/api/interest', verifyToken, (req, res) => {
-  const { dogId, userName, contact } = req.body;
-  const dog = dogs.find(d => d.dogId === dogId);
+// ================= SERVER =================
+app.listen(PORT, async () => {
+  console.log(`Stray Shield API running on http://localhost:${PORT}`);
+  console.log('Connected to PostgreSQL database');
 
-  if (!dog) {
-    return res.status(404).json({ message: "Dog not found" });
-  }
-
-  dog.interestedUsers.push({
-    userId: Date.now().toString(),
-    userName,
-    contact,
-    status: "Pending"
-  });
-
-  res.json({ message: "Interest recorded", dog });
-});
-
-// NGO can update interest status
-app.put('/api/interest/:dogId/:userId', verifyToken, (req, res) => {
-  if (req.user.userType !== 'ngo') {
-    return res.status(403).json({ message: "Only NGOs can update interest" });
-  }
-
-  const { dogId, userId } = req.params;
-  const { status } = req.body;
-
-  const dog = dogs.find(d => d.dogId === dogId);
-  if (!dog) return res.status(404).json({ message: "Dog not found" });
-
-  const interest = dog.interestedUsers.find(u => u.userId === userId);
-  if (!interest) return res.status(404).json({ message: "Interest not found" });
-
-  interest.status = status;
-  res.json({ message: "Interest updated", dog });
+  await loadAIModel(); // 🔥 IMPORTANT
 });
