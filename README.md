@@ -52,7 +52,7 @@ A comprehensive full-stack Next.js application connecting citizens with NGOs to 
 
 ## Project Structure
 
-
+```
 stray-shield/
 ├── app/
 │   ├── page.jsx                      # Landing page with features
@@ -103,7 +103,7 @@ stray-shield/
 ├── FULL_SETUP_GUIDE.md              # Complete end-to-end setup
 └── COMPLETION_SUMMARY.md            # Project completion status
 
-
+```
 
 ---
 
@@ -111,7 +111,7 @@ stray-shield/
 
 ### Quick Start (All-in-One)
 
-
+```bash
 # Clone the repository
 git clone https://github.com/shravyaks275/stray-shield-web.git
 cd stray-shield-web
@@ -135,69 +135,70 @@ NEXT_PUBLIC_API_URL=http://localhost:3001
 PORT=3001
 JWT_SECRET=your-secret-key-change-in-production
 NODE_ENV=development
-
+```
 
 ### Frontend Setup
 
 1. **Install Dependencies**
-  
+   ```bash
    npm install
-  
+   ```
 
 2. **Environment Configuration**
    Create `.env.local`:
-   
+   ```
    NEXT_PUBLIC_API_URL=http://localhost:3001
- 
+   ```
 
 3. **Run Development Server**
-  
+   ```bash
    npm run dev
- 
+   ```
    Frontend runs at `http://localhost:3000`
 
 4. **Build for Production**
-  
+   ```bash
    npm run build
    npm start
-   
+   ```
 
 ### Backend Setup
 
 1. **Navigate to Backend**
-
+   ```bash
    cd server
-   
+   ```
 
 2. **Install Dependencies**
-  
+   ```bash
    npm install
-  
+   ```
 
 3. **Environment Configuration**
    Create `.env`:
-  
+   ```
    PORT=3001
    JWT_SECRET=your-secret-key-change-in-production
    NODE_ENV=development
    DATABASE_URL=postgresql://user:password@localhost:5432/stray_shield
-   
+   ```
 
 4. **Run Server**
-   
+   ```bash
    npm run dev
- 
+   ```
    Backend runs at `http://localhost:3001`
 
 5. **Production Mode**
-
+   ```bash
    npm start
- 
+   ```
 
 ### Database Setup (Optional - PostgreSQL)
 
 For production, migrate from file-based storage to PostgreSQL:
 
+```bash
 # Install PostgreSQL (macOS)
 brew install postgresql
 brew services start postgresql
@@ -211,7 +212,7 @@ CREATE DATABASE stray_shield;
 # Then run migrations
 cd server
 npm run migrate
-
+```
 
 See `DATABASE_SETUP.md` for detailed instructions.
 
@@ -221,6 +222,7 @@ See `DATABASE_SETUP.md` for detailed instructions.
 
 ### Development
 
+```bash
 # Frontend development
 npm run dev                    # Start Next.js dev server (port 3000)
 npm run build                 # Build production bundle
@@ -232,12 +234,11 @@ npm run dev                   # Start Express with auto-reload
 npm start                     # Start production server
 npm run migrate              # Run database migrations
 npm run seed                 # Seed sample data
-
------------------------
+```
 
 ### Testing
 
-
+```bash
 # Test API endpoints
 curl http://localhost:3001/api/health
 
@@ -245,7 +246,7 @@ curl http://localhost:3001/api/health
 curl -X POST http://localhost:3001/api/auth/signup \
   -H "Content-Type: application/json" \
   -d '{"email":"test@example.com","password":"test123","name":"Test","phone":"1234567890","userType":"citizen"}'
-
+```
 
 ---
 
@@ -301,9 +302,9 @@ curl -X POST http://localhost:3001/api/auth/signup \
 ## New Components
 
 ### DogCard 🆕
-
+```jsx
 <DogCard dog={dog} onExpress={handleInterest} />
-
+```
 Displays adoptable dog with:
 - Dog image carousel
 - Breed, age, location info
@@ -311,9 +312,9 @@ Displays adoptable dog with:
 - "Express Interest" button
 
 ### Citizen Dashboard Page 🆕
-
+```jsx
 <Route path="/citizen-dashboard" element={<CitizenDashboard />} />
-
+```
 Features:
 - Responsive grid layout
 - Personality matching algorithm
@@ -321,9 +322,9 @@ Features:
 - Loading and empty states
 
 ### My Reports Page 🆕
-
+```jsx
 <Route path="/my-reports" element={<MyReports />} />
-
+```
 Allows citizens to:
 - Track submitted reports
 - View current status
@@ -387,25 +388,25 @@ Allows citizens to:
 ## API Endpoints
 
 ### Authentication
-- POST /api/auth/signup - Register new user (citizen or NGO)
-- POST /api/auth/login - Login user and receive JWT token
+- `POST /api/auth/signup` - Register new user (citizen or NGO)
+- `POST /api/auth/login` - Login user and receive JWT token
 
 ### Reports
-- POST /api/reports/create - Create a new report (requires auth)
-- GET /api/reports - Get all reports (citizens see only their own, NGOs see all)
-- GET /api/reports/:id - Get specific report details
-- PUT /api/reports/:id - Update report status (NGO only)
-- DELETE /api/reports/:id - Delete report (owner only)
-- GET /api/reports/my - Get citizen's own reports
+- `POST /api/reports/create` - Create a new report (requires auth)
+- `GET /api/reports` - Get all reports (citizens see only their own, NGOs see all)
+- `GET /api/reports/:id` - Get specific report details
+- `PUT /api/reports/:id` - Update report status (NGO only)
+- `DELETE /api/reports/:id` - Delete report (owner only)
+- `GET /api/reports/my` - Get citizen's own reports
 
 ### Users
-- GET /api/users/profile - Get logged-in user's profile (requires auth)
-- PUT /api/users/profile - Update user profile (requires auth)
+- `GET /api/users/profile` - Get logged-in user's profile (requires auth)
+- `PUT /api/users/profile` - Update user profile (requires auth)
 
 ### Health & Status
-- GET /api/health - Health check endpoint (no auth required)
+- `GET /api/health` - Health check endpoint (no auth required)
 
-See BACKEND_SETUP.md for detailed endpoint documentation with request/response examples.
+See `BACKEND_SETUP.md` for detailed endpoint documentation with request/response examples.
 
 ---
 
@@ -434,7 +435,7 @@ See BACKEND_SETUP.md for detailed endpoint documentation with request/response e
 ### For Developers
 
 **Use centralized configuration:**
-
+```javascript
 // Instead of hardcoding routes
 import { ROUTES, API_ENDPOINTS } from '@/config/paths.js';
 
@@ -444,13 +445,13 @@ fetch(API_ENDPOINTS.GET_REPORTS)
 ```
 
 **Use API helpers:**
-
+```javascript
 // Instead of raw fetch calls
 import { createReport, getMyReports } from '@/utils/api.js';
 
 const response = await createReport(reportData);
 const myReports = await getMyReports();
-
+```
 
 **Environment variables:**
 - Use `NEXT_PUBLIC_API_URL` to switch between dev/prod APIs
@@ -531,6 +532,7 @@ See `DEPLOYMENT.md` for complete deployment instructions with all options and tr
 
 For production use, migrate from file-based storage to PostgreSQL:
 
+```bash
 # See DATABASE_SETUP.md for detailed instructions
 # Quick summary:
 1. Install PostgreSQL
@@ -538,7 +540,7 @@ For production use, migrate from file-based storage to PostgreSQL:
 3. Configure .env with database URL
 4. Run migrations: npm run migrate
 5. Seed sample data: npm run seed
-
+```
 
 Full database schema, indexes, and optimization tips available in `DATABASE_SETUP.md`.
 
@@ -710,9 +712,9 @@ lsof -i :3000 | grep LISTEN | awk '{print $2}' | xargs kill -9
 To contribute to this project:
 
 1. Fork the repository
-2. Create a feature branch: git checkout -b feature/amazing-feature
-3. Commit changes: git commit -m 'Add amazing feature'
-4. Push to branch: git push origin feature/amazing-feature
+2. Create a feature branch: `git checkout -b feature/amazing-feature`
+3. Commit changes: `git commit -m 'Add amazing feature'`
+4. Push to branch: `git push origin feature/amazing-feature`
 5. Open a Pull Request
 
 ---
@@ -732,10 +734,12 @@ This project is licensed under the MIT License - see LICENSE file for details.
 ---
 
 **Project Status**: ✅ **COMPLETE AND READY FOR DEPLOYMENT**  
-**Made with ❤️ for animal welfare communities**  
+
 
 Project maintained by [@shravyaks275](https://github.com/shravyaks275)
 
 Last updated: 2026-03-26
+```
 
 ---
+
