@@ -739,7 +739,7 @@ This project is licensed under the MIT License - see LICENSE file for details.
 Project maintained by [@shravyaks275](https://github.com/shravyaks275)
 
 Last updated: 2026-03-26
-```
+
 
 ---
 
