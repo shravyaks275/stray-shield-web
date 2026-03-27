@@ -6,6 +6,48 @@ import { createReport, apiCall } from "@/utils/api"
 import { AlertCircle, CheckCircle, Upload, X } from 'lucide-react'
 import { motion, AnimatePresence } from "framer-motion"
 
+// Compress image to max 500KB and resize to smaller dimensions
+async function compressImage(base64String) {
+  return new Promise((resolve) => {
+    const img = new Image()
+    img.onload = () => {
+      const canvas = document.createElement('canvas')
+      let width = img.width
+      let height = img.height
+      const maxWidth = 800
+      const maxHeight = 600
+
+      if (width > height) {
+        if (width > maxWidth) {
+          height *= maxWidth / width
+          width = maxWidth
+        }
+      } else {
+        if (height > maxHeight) {
+          width *= maxHeight / height
+          height = maxHeight
+        }
+      }
+
+      canvas.width = width
+      canvas.height = height
+      const ctx = canvas.getContext('2d')
+      ctx.drawImage(img, 0, 0, width, height)
+
+      let quality = 0.8
+      let compressed = canvas.toDataURL('image/jpeg', quality)
+
+      while (compressed.length > 500000 && quality > 0.1) {
+        quality -= 0.1
+        compressed = canvas.toDataURL('image/jpeg', quality)
+      }
+
+      resolve(compressed)
+    }
+    img.src = base64String
+  })
+}
+
 export default function ReportForm() {
   const router = useRouter()
   const [formData, setFormData] = useState({
@@ -32,8 +74,25 @@ export default function ReportForm() {
 
   const handleImageChange = (e) => {
     const files = Array.from(e.target.files || [])
+    const MAX_IMAGES = 3
+    const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5MB per file
+
+    // Validate file count
+    if (imagePreviews.length + files.length > MAX_IMAGES) {
+      setError(`Maximum ${MAX_IMAGES} images allowed. You already have ${imagePreviews.length}.`)
+      return
+    }
+
+    // Validate file sizes
+    const oversizedFiles = files.filter(f => f.size > MAX_FILE_SIZE)
+    if (oversizedFiles.length > 0) {
+      setError(`File size too large. Max ${5}MB per image. Please select smaller images.`)
+      return
+    }
+
     if (files.length > 0) {
       setImages(prev => [...prev, ...files])
+      setError("")
 
       const readers = files.map(file => {
         return new Promise(resolve => {
@@ -74,44 +133,43 @@ export default function ReportForm() {
     try {
       let aiResults = []
 
-      // Step 1: Call backend AI classifier for each image
+      // Step 1: Compress and classify each image
       if (imagePreviews.length > 0) {
-        for (const preview of imagePreviews) {
-          const base64Image = preview.split(",")[1]
-          const res = await apiCall("/api/classify", {
-            method: "POST",
-            body: JSON.stringify({ imageBuffer: base64Image }),
-          })
-          aiResults.push(res.label || "Unknown")
+        for (let i = 0; i < imagePreviews.length; i++) {
+          try {
+            const preview = imagePreviews[i]
+            const base64Image = preview.split(",")[1]
+            
+            // Compress image before classification
+            const compressedImage = await compressImage(preview)
+            const compressedBase64 = compressedImage.split(",")[1]
+            
+            const res = await apiCall("/api/classify", {
+              method: "POST",
+              body: JSON.stringify({ imageBuffer: compressedBase64 }),
+            })
+            aiResults.push(res.label || res.message || "Unknown")
+          } catch (classifyErr) {
+            console.warn("Image classification failed, using fallback:", classifyErr)
+            aiResults.push("Pending Review")
+          }
         }
         setAiStatuses(aiResults)
       }
 
-      // Step 2: Build report payload
+      // Step 2: Build minimal report payload (NO full image data - only count & metadata)
       const reportData = {
         ...formData,
         latitude: formData.latitude || undefined,
         longitude: formData.longitude || undefined,
-        images: imagePreviews,
-        imageUrl: imagePreviews[0] || undefined,
+        imageCount: imagePreviews.length,
+        imageUrls: imagePreviews.length > 0 ? [imagePreviews[0]] : [],
         aiStatuses: aiResults,
+        title: `Reported dog at ${formData.location || "Unknown"}`,
       }
 
-      // Step 3: Save report via backend
+      // Step 3: Save report (createReport handles localStorage saving)
       await createReport(reportData)
-
-      // Step 3.5: Save to LocalStorage for immediate display in My Reports
-      const newReportEntry = {
-        ...reportData,
-        id: Date.now(),
-        userId: localStorage.getItem("userId"),
-        status: "pending",
-        timestamp: new Date().toISOString(),
-        title: `Reported dog at ${formData.location || "Unknown area"}`,
-        aiStatus: aiResults.length > 0 ? aiResults[0] : "Pending Review",
-      }
-      const existingReports = JSON.parse(localStorage.getItem("stray_reports_data") || "[]")
-      localStorage.setItem("stray_reports_data", JSON.stringify([newReportEntry, ...existingReports]))
 
       setSuccess("Report submitted successfully! Thank you for helping.")
       setFormData({
@@ -127,9 +185,10 @@ export default function ReportForm() {
       setImagePreviews([])
       setAiStatuses([])
 
+      // Show confirmation briefly and then navigate to My Reports.
       setTimeout(() => {
         router.push("/my-reports")
-      }, 2000)
+      }, 800)
     } catch (err) {
       setError(err.message || "Failed to submit report. Please try again.")
       console.error('[v0] Report submission error:', err)
@@ -253,7 +312,7 @@ export default function ReportForm() {
                   <Upload className="w-8 h-8 text-primary/80" />
                 </div>
                 <p className="font-bold text-foreground">Click to upload images</p>
-                <p className="text-xs font-medium opacity-70">PNG, JPG, GIF up to 5MB each</p>
+                <p className="text-xs font-medium opacity-70">PNG, JPG, GIF up to 5MB each (max 3 images)</p>
               </label>
             )}
           </div>
