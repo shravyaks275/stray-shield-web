@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { AlertCircle, PawPrint, CheckCircle, Clock, RefreshCw } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { initialDogs } from "@/lib/mockData";
 
 export default function AdoptionBoard() {
     const [dogs, setDogs] = useState([]);
@@ -19,23 +20,42 @@ export default function AdoptionBoard() {
             if (typeof window !== "undefined") {
               const saved = localStorage.getItem("straydogs_data_v3");
               if (saved) {
-                mockDogs = JSON.parse(saved);
+                try {
+                  mockDogs = JSON.parse(saved);
+                } catch (err) {
+                  console.warn("[v0] adoption board stale localStorage, resetting:", err);
+                  mockDogs = [];
+                }
               }
             }
-            
-            // Map legacy fields into standard format if missing
-            const mergedDogs = mockDogs.map(d => ({
-                ...d,
-                dogId: d.id, // map `id` to `dogId` for backward compat
-                interestedUsers: d.interestedUsers || (d.status === "Reviewing" ? [{userName: "Review Applicant"}] : [])
-            }));
 
+            if (!Array.isArray(mockDogs) || mockDogs.length === 0) {
+              mockDogs = initialDogs;
+            }
+
+            // Remove accidental duplicates and standardize shape
+            const dogMap = new Map();
+            mockDogs.forEach((d, idx) => {
+              const id = d.id ?? d.dogId ?? `dog-${idx}`
+              if (!dogMap.has(id)) {
+                dogMap.set(id, {
+                  ...d,
+                  dogId: id,
+                  interestedUsers: d.interestedUsers || (d.status === "Reviewing" ? [{ userName: "Review Applicant" }] : []),
+                })
+              }
+            })
+
+            const mergedDogs = Array.from(dogMap.values())
+            if (typeof window !== "undefined") {
+              localStorage.setItem("straydogs_data_v3", JSON.stringify(mergedDogs))
+            }
             setDogs(mergedDogs);
         } catch (err) {
             setError("Failed to load dogs. Please try again.");
             console.error("[v0] AdoptionBoard fetch error:", err);
         } finally {
-            setTimeout(() => setLoading(false), 500);
+            setLoading(false);
         }
     };
 
@@ -60,13 +80,13 @@ export default function AdoptionBoard() {
         }
     };
 
-    const filteredDogs = dogs.filter((dog) => {
+    const filteredDogs = useMemo(() => dogs.filter((dog) => {
         if (filter === "all") return true;
         if (filter === "available") return dog.status === "Available";
         if (filter === "adopted") return dog.status === "Adopted";
         if (filter === "in_progress") return dog.interestedUsers.length > 0 && dog.status === "Available";
         return true;
-    });
+    }), [dogs, filter]);
 
     const containerVariants = {
         hidden: { opacity: 0 },

@@ -18,16 +18,40 @@ export async function apiCall(endpoint, options = {}) {
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
       ...options,
       headers,
+      signal: AbortSignal.timeout(15000),
     })
 
-    const data = await response.json()
+    const contentType = response.headers.get("content-type") || ""
+    let data
+
+    if (contentType.includes("application/json")) {
+      data = await response.json()
+    } else {
+      const text = await response.text()
+      if (!response.ok) {
+        if (response.status === 401 && typeof window !== 'undefined') {
+          localStorage.clear()
+          window.location.href = '/login'
+        }
+        const errorMsg = 
+          response.status === 413 ? "Request too large. Please reduce image size or number of images." :
+          response.status === 400 ? "Invalid request format." :
+          `API Error: ${response.status}`
+        throw new Error(errorMsg)
+      }
+      return { message: text }
+    }
 
     if (!response.ok) {
       if (response.status === 401 && typeof window !== 'undefined') {
         localStorage.clear()
         window.location.href = '/login'
       }
-      throw new Error(data.message || `API Error: ${response.status}`)
+      const errorMsg = 
+        response.status === 413 ? "Request too large. Please reduce image size or number of images." :
+        response.status === 400 ? "Invalid request format." :
+        data?.message || data?.error || `API Error: ${response.status}`
+      throw new Error(errorMsg)
     }
 
     return data
@@ -39,7 +63,21 @@ export async function apiCall(endpoint, options = {}) {
 
 // Reports
 export async function createReport(reportData) {
-  return apiCall("/api/reports/create", {
+  // Save to localStorage for immediate availability in My Reports
+  if (typeof window !== 'undefined') {
+    const existingReports = JSON.parse(localStorage.getItem('stray_reports_data') || '[]');
+    const newReport = {
+      id: Date.now(),
+      ...reportData,
+      userId: localStorage.getItem('userId'),
+      status: 'pending',
+      timestamp: new Date().toISOString(),
+      title: reportData.title || `Reported dog at ${reportData.location || 'Unknown'}`,
+    };
+    localStorage.setItem('stray_reports_data', JSON.stringify([newReport, ...existingReports]));
+    return { message: 'Report created successfully', report: newReport };
+  }
+  return apiCall("/api/reports", {
     method: "POST",
     body: JSON.stringify(reportData),
   })
