@@ -73,11 +73,13 @@ export async function createReport(reportData) {
       status: 'pending',
       timestamp: new Date().toISOString(),
       title: reportData.title || `Reported dog at ${reportData.location || 'Unknown'}`,
+      imageUrl: reportData.imageUrl || (reportData.imageUrls?.[0] || null),
+      aiStatus: reportData.aiStatus || (reportData.aiStatuses?.[0] || 'Pending Review'),
     };
     localStorage.setItem('stray_reports_data', JSON.stringify([newReport, ...existingReports]));
     return { message: 'Report created successfully', report: newReport };
   }
-  return apiCall("/api/reports", {
+  return apiCall("/api/reports/create", {
     method: "POST",
     body: JSON.stringify(reportData),
   })

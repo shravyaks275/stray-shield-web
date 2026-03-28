@@ -163,7 +163,9 @@ export default function ReportForm() {
         latitude: formData.latitude || undefined,
         longitude: formData.longitude || undefined,
         imageCount: imagePreviews.length,
+        imageUrl: imagePreviews.length > 0 ? imagePreviews[0] : null,
         imageUrls: imagePreviews.length > 0 ? [imagePreviews[0]] : [],
+        aiStatus: aiResults.length > 0 ? aiResults[0] : "Pending Review",
         aiStatuses: aiResults,
         title: `Reported dog at ${formData.location || "Unknown"}`,
       }
