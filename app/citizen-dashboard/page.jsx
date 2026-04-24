@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Navbar from "@/components/Navbar";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import DogCard, { calculateMatch } from "@/components/DogCard";
@@ -29,14 +29,31 @@ export default function CitizenDashboard() {
     if (typeof window !== "undefined") {
       const saved = localStorage.getItem("straydogs_data_v3");
       if (saved) {
-        dogData = JSON.parse(saved);
+        try {
+          dogData = JSON.parse(saved);
+        } catch (err) {
+          console.warn("[v0] citizen dashboard got stale data, resetting:", err);
+          dogData = initialDogs;
+          localStorage.setItem("straydogs_data_v3", JSON.stringify(initialDogs));
+        }
       } else {
         localStorage.setItem("straydogs_data_v3", JSON.stringify(initialDogs));
       }
     }
 
+    // Deduplicate by ID
+    const uniqueMap = new Map();
+    dogData.forEach((dog, idx) => {
+      const id = dog.id ?? dog.dogId ?? `dog-${idx}`;
+      if (!uniqueMap.has(id)) {
+        uniqueMap.set(id, { ...dog, id });
+      }
+    });
+
+    const uniqueDogs = Array.from(uniqueMap.values());
+
     // Only show dogs marked as 'Available'
-    setDogs(dogData.filter(d => d.status === "Available"));
+    setDogs(uniqueDogs.filter(d => d.status === "Available"));
     setLoading(false);
   };
 
@@ -55,9 +72,10 @@ export default function CitizenDashboard() {
     visible: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 24 } }
   };
 
-  const filteredDogs = filter === "all" 
-    ? dogs 
-    : dogs.filter(dog => calculateMatch(dog, userPreferences) >= 5);
+  const filteredDogs = useMemo(() => {
+    if (filter === "all") return dogs;
+    return dogs.filter(dog => calculateMatch(dog, userPreferences) >= 5);
+  }, [dogs, filter, userPreferences]);
 
   return (
     <ProtectedRoute userType="citizen">

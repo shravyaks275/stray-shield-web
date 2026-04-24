@@ -29,6 +29,20 @@ export default function NgoDashboard() {
     setLoading(true);
     setError("");
 
+    // Load local reports from browser storage (citizen submissions)
+    let localReports = [];
+    if (typeof window !== "undefined") {
+      const stored = localStorage.getItem("stray_reports_data");
+      if (stored) {
+        try {
+          localReports = JSON.parse(stored);
+        } catch (err) {
+          console.warn("Failed to parse stray_reports_data for NGO dashboard:", err);
+          localReports = [];
+        }
+      }
+    }
+
     // 🔒 Backend disabled — using mock data
     const mockReports = [
       {
@@ -65,8 +79,9 @@ export default function NgoDashboard() {
       },
     ];
 
-    setReports(mockReports);
-    calculateStats(mockReports);
+    const mergedReports = [...localReports, ...mockReports];
+    setReports(mergedReports);
+    calculateStats(mergedReports);
     setTimeout(() => {
       setLoading(false);
     }, 600) // slight delay for visual effect

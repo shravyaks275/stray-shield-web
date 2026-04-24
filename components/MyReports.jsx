@@ -36,15 +36,13 @@ export default function MyReports() {
 
       if (typeof window !== "undefined") {
         const local = localStorage.getItem("stray_reports_data");
-        const currentUserId = localStorage.getItem("userId");
         if (local) {
-          const parsed = JSON.parse(local);
-          // Only show reports that explicitly belong to this user (or don't have a userId for legacy mock reports)
-          const userSpecificReports = parsed.filter(r => {
-             if (!r.userId) return false; // Filter out if another user created it, wait if it has no userId and we want to hide it from others. Let's strictly only show if userId matches.
-             return r.userId.toString() === currentUserId?.toString();
-          });
-          mockReports = [...userSpecificReports, ...mockReports];
+          try {
+            const parsed = JSON.parse(local);
+            mockReports = [...parsed, ...mockReports];
+          } catch (parseErr) {
+            console.warn("Failed to parse stray_reports_data:", parseErr);
+          }
         }
       }
 
@@ -53,7 +51,7 @@ export default function MyReports() {
       setError("Failed to load reports. Please try again.")
       console.error("[v0] MyReports fetch error:", err)
     } finally {
-      setTimeout(() => setLoading(false), 500)
+      setLoading(false)
     }
   }
 
