@@ -80,6 +80,7 @@ export default function ReportForm() {
   useEffect(() => {
     if (showCamera && videoRef.current && streamRef.current) {
       videoRef.current.srcObject = streamRef.current
+      videoRef.current.play().catch(e => console.error("Video play error:", e))
     }
   }, [showCamera])
 
@@ -137,7 +138,7 @@ export default function ReportForm() {
     // Validate file sizes
     const oversizedFiles = files.filter(f => f.size > MAX_FILE_SIZE)
     if (oversizedFiles.length > 0) {
-      setError(`File size too large. Max ${5}MB per image. Please select smaller images.`)
+      setError(`File size too large. Max 5MB per image. Please select smaller images.`)
       return
     }
 
@@ -168,6 +169,16 @@ export default function ReportForm() {
 
   // Camera functions for laptop webcam access
   const openCamera = async () => {
+    if (imagePreviews.length >= 3) {
+      setError("Maximum 3 images allowed.")
+      return
+    }
+
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      setError("Camera is not supported on this device. Please use the Upload option.")
+      return
+    }
+
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
         video: { facingMode: 'environment' }
@@ -184,10 +195,7 @@ export default function ReportForm() {
         setShowCamera(true)
       } catch (fallbackErr) {
         console.error('Camera error:', fallbackErr)
-        // Fallback to file input
-        if (fileInputRef.current) {
-          fileInputRef.current.click()
-        }
+        setError(`Unable to access the camera: ${fallbackErr.name || fallbackErr.message || 'Unknown Context'}. Please check permissions.`)
       }
     }
   }
@@ -201,6 +209,12 @@ export default function ReportForm() {
   }
 
   const capturePhoto = () => {
+    if (imagePreviews.length >= 3) {
+      setError("Maximum 3 images allowed.")
+      closeCamera()
+      return
+    }
+
     if (videoRef.current && canvasRef.current) {
       const canvas = canvasRef.current
       const video = videoRef.current
@@ -217,6 +231,10 @@ export default function ReportForm() {
   const validateForm = () => {
     if (!formData.location || !formData.contactPhone) {
       setError("Please fill in location and phone number")
+      return false
+    }
+    if (imagePreviews.length === 0) {
+      setError("Please provide at least one photo of the dog.")
       return false
     }
     return true
@@ -389,7 +407,7 @@ export default function ReportForm() {
 
         {/* Image Upload with Camera Option */}
         <div>
-          <label className={labelClasses}>Photos of the Dog</label>
+          <label className={labelClasses}>Photos of the Dog <span className="text-primary ml-1">*</span></label>
           <div className="border-2 border-dashed border-border/60 hover:border-primary/50 bg-background/30 rounded-2xl p-6 transition-colors">
             <input
               type="file"
@@ -478,7 +496,11 @@ export default function ReportForm() {
             ref={videoRef}
             autoPlay
             playsInline
+            muted
             className="max-w-full max-h-[70vh] rounded-xl"
+            onLoadedMetadata={() => {
+              if (videoRef.current) videoRef.current.play().catch(e => console.error("Play error:", e));
+            }}
           />
           <canvas ref={canvasRef} className="hidden" />
           <div className="flex gap-4 mt-6">

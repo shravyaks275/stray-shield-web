@@ -21,14 +21,20 @@ export default function ProfilePage() {
     bio: "Animal lover and software engineer."
   });
 
-  const [activityData, setActivityData] = useState([
-    { month: "Nov", value: 35 },
-    { month: "Dec", value: 45 },
-    { month: "Jan", value: 25 },
-    { month: "Feb", value: 65 },
-    { month: "Mar", value: 50 },
-    { month: "Apr", value: 85 },
-  ]);
+  const [activityData, setActivityData] = useState(() => {
+    const data = [];
+    const now = new Date();
+    const mockValues = [45, 20, 60, 85, 30, 75]; // baseline dummy data
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      data.push({
+        month: d.toLocaleString('default', { month: 'short' }),
+        value: mockValues[5 - i],
+        percentage: mockValues[5 - i]
+      });
+    }
+    return data;
+  });
 
   useEffect(() => {
     // Load profile data
@@ -44,11 +50,21 @@ export default function ProfilePage() {
           const userReports = localReports.filter(r => r.userId === parseInt(userId, 10) || r.userId === userId);
           
           if (userReports.length > 0) {
-            // Give a slight bump to the current month to reflect dynamic activity
             setActivityData(prev => {
-              const newData = [...prev];
-              newData[newData.length - 1].value = Math.min(100, newData[newData.length - 1].value + (userReports.length * 10));
-              return newData;
+              const newData = prev.map(item => ({ ...item }));
+              userReports.forEach(report => {
+                if (report.timestamp) {
+                  const rDate = new Date(report.timestamp);
+                  const monthStr = rDate.toLocaleString('default', { month: 'short' });
+                  const idx = newData.findIndex(d => d.month === monthStr);
+                  if (idx !== -1) newData[idx].value += 15; // noticeable bump per report
+                }
+              });
+              const maxVal = Math.max(...newData.map(d => d.value), 100); 
+              return newData.map(d => ({
+                ...d,
+                percentage: Math.min(100, Math.floor((d.value / maxVal) * 100))
+              }));
             });
           }
 
@@ -250,13 +266,12 @@ export default function ProfilePage() {
                   {activityData.map((data, i) => (
                     <div key={i} className="flex flex-col items-center gap-3 group w-1/6">
                       <div className="w-full max-w-[40px] relative flex justify-center">
-                        {/* Tooltip */}
-                        <div className="absolute -top-10 opacity-0 group-hover:opacity-100 transition-opacity bg-background border border-border text-xs font-bold px-2 py-1 rounded shadow-lg pointer-events-none">
-                          {data.value} {userType === "ngo" ? "Adoptions" : "Interactions"}
+                        <div className="absolute -top-10 opacity-0 group-hover:opacity-100 transition-opacity bg-background border border-border text-xs font-bold px-2 py-1 rounded shadow-lg pointer-events-none whitespace-nowrap">
+                          {data.value} {userType === "ngo" ? "Adoptions" : "Reports"}
                         </div>
                         <motion.div 
                           initial={{ height: 0 }}
-                          animate={{ height: `${data.value}%` }} 
+                          animate={{ height: `${data.percentage}%` }} 
                           transition={{ duration: 1, delay: 0.2 + (i * 0.1), type: "spring" }}
                           className="w-full bg-gradient-to-t from-primary/40 to-primary rounded-t-lg hover:brightness-125 transition-all"
                         />
