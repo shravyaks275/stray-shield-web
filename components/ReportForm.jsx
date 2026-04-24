@@ -1,9 +1,9 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useRef, useEffect } from "react"
 import { useRouter } from 'next/navigation'
 import { createReport, apiCall } from "@/utils/api"
-import { AlertCircle, CheckCircle, Upload, X } from 'lucide-react'
+import { AlertCircle, CheckCircle, Upload, X, MapPin, Camera, Video } from 'lucide-react'
 import { motion, AnimatePresence } from "framer-motion"
 
 export default function ReportForm() {
@@ -15,7 +15,6 @@ export default function ReportForm() {
     description: "",
     contactName: "",
     contactPhone: "",
-    contactEmail: "",
   })
   const [images, setImages] = useState([])
   const [imagePreviews, setImagePreviews] = useState([])
@@ -23,6 +22,52 @@ export default function ReportForm() {
   const [error, setError] = useState("")
   const [success, setSuccess] = useState("")
   const [aiStatuses, setAiStatuses] = useState([])
+  const [geoLoading, setGeoLoading] = useState(false)
+  const [geoError, setGeoError] = useState("")
+  const [showCamera, setShowCamera] = useState(false)
+  const fileInputRef = useRef(null)
+  const videoRef = useRef(null)
+  const canvasRef = useRef(null)
+  const streamRef = useRef(null)
+
+  // Auto-get geolocation on component mount
+  useEffect(() => {
+    getCurrentLocation()
+  }, [])
+
+  const getCurrentLocation = () => {
+    if (!navigator.geolocation) {
+      setGeoError("Geolocation is not supported by your browser")
+      return
+    }
+
+    setGeoLoading(true)
+    setGeoError("")
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords
+        setFormData(prev => ({
+          ...prev,
+          latitude: latitude.toFixed(6),
+          longitude: longitude.toFixed(6),
+          location: `Lat: ${latitude.toFixed(4)}, Lng: ${longitude.toFixed(4)}`
+        }))
+        setGeoLoading(false)
+      },
+      (err) => {
+        if (err.code === err.PERMISSION_DENIED) {
+          setGeoError("Location denied. Please enable location access or enter manually.")
+        } else if (err.code === err.POSITION_UNAVAILABLE) {
+          setGeoError("Location unavailable. Please enter location manually.")
+        } else {
+          setGeoError("Unable to get location. Please enter manually.")
+        }
+        setGeoLoading(false)
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+    )
+  }
 
   const handleChange = (e) => {
     const { name, value } = e.target
@@ -47,6 +92,8 @@ export default function ReportForm() {
         setImagePreviews(prev => [...prev, ...newPreviews])
       })
     }
+    // Reset input so same file can be selected again
+    e.target.value = ''
   }
 
   const removeImage = (indexToRemove) => {
@@ -54,9 +101,51 @@ export default function ReportForm() {
     setImagePreviews(prev => prev.filter((_, idx) => idx !== indexToRemove))
   }
 
+  // Camera functions for laptop webcam access
+  const openCamera = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'environment' }
+      })
+      streamRef.current = stream
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream
+      }
+      setShowCamera(true)
+    } catch (err) {
+      console.error('Camera error:', err)
+      // Fallback to file input
+      if (fileInputRef.current) {
+        fileInputRef.current.click()
+      }
+    }
+  }
+
+  const closeCamera = () => {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => track.stop())
+      streamRef.current = null
+    }
+    setShowCamera(false)
+  }
+
+  const capturePhoto = () => {
+    if (videoRef.current && canvasRef.current) {
+      const canvas = canvasRef.current
+      const video = videoRef.current
+      canvas.width = video.videoWidth
+      canvas.height = video.videoHeight
+      const ctx = canvas.getContext('2d')
+      ctx.drawImage(video, 0, 0)
+      const dataUrl = canvas.toDataURL('image/jpeg')
+      setImagePreviews(prev => [...prev, dataUrl])
+      closeCamera()
+    }
+  }
+
   const validateForm = () => {
     if (!formData.location || !formData.contactPhone) {
-      setError("Please fill in all required fields")
+      setError("Please fill in location and phone number")
       return false
     }
     return true
@@ -121,7 +210,6 @@ export default function ReportForm() {
         description: "",
         contactName: "",
         contactPhone: "",
-        contactEmail: "",
       })
       setImages([])
       setImagePreviews([])
@@ -185,10 +273,6 @@ export default function ReportForm() {
             <label className={labelClasses}>Phone Number <span className="text-primary ml-1">*</span></label>
             <input type="tel" name="contactPhone" value={formData.contactPhone} onChange={handleChange} placeholder="+91 1234567890" required className={inputClasses} />
           </div>
-          <div className="sm:col-span-2">
-            <label className={labelClasses}>Email</label>
-            <input type="email" name="contactEmail" value={formData.contactEmail} onChange={handleChange} placeholder="you@email.com" className={inputClasses} />
-          </div>
         </div>
       </div>
 
@@ -199,9 +283,30 @@ export default function ReportForm() {
           <p className="text-sm text-muted-foreground">Describe where the dog is and its condition.</p>
         </div>
 
+        {/* Auto Geolocation */}
         <div>
-          <label className={labelClasses}>Exact Location <span className="text-primary ml-1">*</span></label>
-          <input type="text" name="location" value={formData.location} onChange={handleChange} placeholder="e.g., Near Central Park entrance, Main Street" required className={inputClasses} />
+          <label className={labelClasses}>Location <span className="text-primary ml-1">*</span></label>
+          <div className="flex gap-3">
+            <input
+              type="text"
+              name="location"
+              value={formData.location}
+              onChange={handleChange}
+              placeholder="Auto-detected or enter manually"
+              className={inputClasses}
+            />
+            <button
+              type="button"
+              onClick={getCurrentLocation}
+              disabled={geoLoading}
+              className="px-4 py-3.5 rounded-xl border border-border/50 bg-background/50 backdrop-blur-sm text-foreground hover:bg-secondary/50 transition-colors disabled:opacity-50 flex items-center gap-2"
+              title="Get current location"
+            >
+              <MapPin className="w-5 h-5" />
+              {geoLoading && <span className="text-xs">...</span>}
+            </button>
+          </div>
+          {geoError && <p className="text-xs text-destructive mt-2">{geoError}</p>}
         </div>
 
         <div>
@@ -209,17 +314,26 @@ export default function ReportForm() {
           <textarea name="description" value={formData.description} onChange={handleChange} rows="4" placeholder="Describe the dog's appearance, collar details, or any visible injuries..." className={`${inputClasses} resize-none`} />
         </div>
 
-        {/* Image Upload */}
+        {/* Image Upload with Camera Option */}
         <div>
           <label className={labelClasses}>Photos of the Dog</label>
           <div className="border-2 border-dashed border-border/60 hover:border-primary/50 bg-background/30 rounded-2xl p-6 transition-colors">
-            <input type="file" accept="image/*" multiple onChange={handleImageChange} className="hidden" id="image-input" />
+            <input
+              type="file"
+              accept="image/*"
+              capture="environment"
+              multiple
+              onChange={handleImageChange}
+              className="hidden"
+              id="image-input"
+              ref={fileInputRef}
+            />
             {imagePreviews.length > 0 ? (
               <div className="space-y-6">
-                              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                   <AnimatePresence>
                     {imagePreviews.map((src, idx) => (
-                      <motion.div 
+                      <motion.div
                         key={idx}
                         initial={{ opacity: 0, scale: 0.8 }}
                         animate={{ opacity: 1, scale: 1 }}
@@ -240,25 +354,79 @@ export default function ReportForm() {
                     ))}
                   </AnimatePresence>
                 </div>
-                <div className="flex justify-center">
+                <div className="flex justify-center gap-4">
+                  <button
+                    type="button"
+                    onClick={openCamera}
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-primary/20 hover:bg-primary/30 rounded-full text-sm font-bold text-foreground transition-colors border border-primary/50"
+                  >
+                    <Camera className="w-4 h-4" />
+                    Take Photo
+                  </button>
                   <label htmlFor="image-input" className="cursor-pointer inline-flex items-center gap-2 px-4 py-2 bg-secondary/50 hover:bg-secondary rounded-full text-sm font-bold text-foreground transition-colors border border-border/50">
                     <Upload className="w-4 h-4" />
-                    Add More Photos
+                    Upload
                   </label>
                 </div>
               </div>
             ) : (
-              <label htmlFor="image-input" className="cursor-pointer flex flex-col items-center gap-3 text-muted-foreground w-full py-8">
-                <div className="w-16 h-16 bg-secondary/50 rounded-full flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
-                  <Upload className="w-8 h-8 text-primary/80" />
+              <div className="flex flex-col items-center gap-3 text-muted-foreground w-full py-8">
+                <div className="flex gap-4">
+                  <button
+                    type="button"
+                    onClick={openCamera}
+                    className="cursor-pointer flex flex-col items-center gap-2 p-4 bg-primary/10 hover:bg-primary/20 rounded-xl transition-colors"
+                  >
+                    <Camera className="w-8 h-8 text-primary/80" />
+                    <p className="text-xs font-bold text-foreground">Camera</p>
+                  </button>
+                  <label htmlFor="image-input" className="cursor-pointer flex flex-col items-center gap-2 p-4 bg-secondary/50 hover:bg-secondary rounded-xl transition-colors">
+                    <Upload className="w-8 h-8 text-primary/80" />
+                    <p className="text-xs font-bold text-foreground">Upload</p>
+                  </label>
                 </div>
-                <p className="font-bold text-foreground">Click to upload images</p>
-                <p className="text-xs font-medium opacity-70">PNG, JPG, GIF up to 5MB each</p>
-              </label>
+                <p className="font-bold text-foreground">Add a photo of the dog</p>
+                <p className="text-xs font-medium opacity-70">PNG, JPG up to 5MB</p>
+              </div>
             )}
           </div>
         </div>
       </div>
+
+      {/* Camera Modal */}
+      {showCamera && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 z-50 bg-black/90 flex flex-col items-center justify-center p-4"
+        >
+          <video
+            ref={videoRef}
+            autoPlay
+            playsInline
+            className="max-w-full max-h-[70vh] rounded-xl"
+          />
+          <canvas ref={canvasRef} className="hidden" />
+          <div className="flex gap-4 mt-6">
+            <button
+              type="button"
+              onClick={capturePhoto}
+              className="px-6 py-3 bg-primary text-white font-bold rounded-full flex items-center gap-2"
+            >
+              <Camera className="w-5 h-5" />
+              Capture
+            </button>
+            <button
+              type="button"
+              onClick={closeCamera}
+              className="px-6 py-3 bg-secondary text-foreground font-bold rounded-full"
+            >
+              Cancel
+            </button>
+          </div>
+        </motion.div>
+      )}
 
       {/* AI Statuses */}
       {aiStatuses.length > 0 && (
