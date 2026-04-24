@@ -53,7 +53,13 @@ export function calculateMatch(dog, user) {
 
 export default function DogCard({ dog, user }) {
     const [isExpanded, setIsExpanded] = useState(false);
-    const images = Array.isArray(dog.images) ? dog.images : [dog.image];
+    const imagesSource = Array.isArray(dog.images)
+        ? dog.images
+        : dog.image
+            ? [dog.image]
+            : [];
+    const imagesSet = [...new Set(imagesSource.filter(Boolean))];
+    const images = imagesSet.length > 0 ? imagesSet : ["/images/milo_1.jpg"];
     const score = calculateMatch(dog, user);
 
     // Prevent background scroll when modal is open
