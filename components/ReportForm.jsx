@@ -35,6 +35,12 @@ export default function ReportForm() {
     getCurrentLocation()
   }, [])
 
+  useEffect(() => {
+    if (showCamera && videoRef.current && streamRef.current) {
+      videoRef.current.srcObject = streamRef.current
+    }
+  }, [showCamera])
+
   const getCurrentLocation = () => {
     if (!navigator.geolocation) {
       setGeoError("Geolocation is not supported by your browser")
@@ -108,15 +114,21 @@ export default function ReportForm() {
         video: { facingMode: 'environment' }
       })
       streamRef.current = stream
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream
-      }
       setShowCamera(true)
     } catch (err) {
-      console.error('Camera error:', err)
-      // Fallback to file input
-      if (fileInputRef.current) {
-        fileInputRef.current.click()
+      console.error('Environment camera error:', err)
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: true
+        })
+        streamRef.current = stream
+        setShowCamera(true)
+      } catch (fallbackErr) {
+        console.error('Camera error:', fallbackErr)
+        // Fallback to file input
+        if (fileInputRef.current) {
+          fileInputRef.current.click()
+        }
       }
     }
   }
