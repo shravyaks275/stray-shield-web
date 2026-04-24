@@ -9,9 +9,9 @@ export default function AdoptionBoardPage() {
   return (
     <ProtectedRoute userType="ngo">
       <div className="min-h-screen bg-background relative overflow-hidden">
-        {/* Ambient Background Glows matching primary.main and secondary.main */}
-        <div className="absolute top-[-10%] left-[-10%] w-[600px] h-[600px] bg-primary/20 rounded-full blur-[120px] -z-10 mix-blend-multiply opacity-50" />
-        <div className="absolute top-[30%] right-[-10%] w-[500px] h-[500px] bg-secondary/30 rounded-full blur-[120px] -z-10 mix-blend-multiply opacity-50" />
+        {/* Ambient Background Glows - Optimized GPU Profile */}
+        <div className="absolute top-[-10%] left-[-10%] w-[600px] h-[600px] bg-primary/10 rounded-full blur-3xl -z-10 opacity-50" />
+        <div className="absolute top-[30%] right-[-10%] w-[500px] h-[500px] bg-secondary/15 rounded-full blur-3xl -z-10 opacity-50" />
         
         <Navbar />
         

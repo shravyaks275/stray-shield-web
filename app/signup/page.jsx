@@ -102,14 +102,14 @@ export default function Signup() {
     }
   }
 
-  const inputClasses = "w-full px-4 py-3.5 rounded-xl border border-border/50 bg-background/50 backdrop-blur-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all font-medium"
+  const inputClasses = "w-full px-4 py-3.5 rounded-xl border border-border/50 bg-background/80 text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all font-medium"
   const labelClasses = "text-sm font-bold text-foreground block"
 
   return (
     <div className="min-h-screen bg-background relative overflow-hidden">
-      {/* Ambient Background */}
-      <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-primary/20 rounded-full blur-[100px] -z-10 mix-blend-multiply opacity-50" />
-      <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-secondary/30 rounded-full blur-[100px] -z-10 mix-blend-multiply opacity-50" />
+      {/* Ambient Background - Optimized GPU Profile */}
+      <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-primary/10 rounded-full blur-3xl -z-10" />
+      <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-secondary/10 rounded-full blur-3xl -z-10" />
       
       <Navbar />
 
@@ -148,7 +148,7 @@ export default function Signup() {
 
             {/* User Type Selection */}
             <div className="mb-8">
-              <div className="flex p-1 bg-secondary/30 rounded-2xl border border-white/10 backdrop-blur-sm">
+              <div className="flex p-1 bg-secondary/30 rounded-2xl border border-white/10">
                 {["citizen", "ngo"].map((type) => (
                   <button
                     key={type}
