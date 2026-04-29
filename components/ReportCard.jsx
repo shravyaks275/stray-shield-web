@@ -67,9 +67,9 @@ export default function ReportCard({ report, onUpdateStatus, isCitizen = false }
         </div>
         <div>
           <p className="font-bold text-foreground text-lg tracking-tight leading-tight">{report.location}</p>
-          {report.latitude && report.longitude && (
+          {report.latitude && report.longitude && !isNaN(Number(report.latitude)) && !isNaN(Number(report.longitude)) && (
             <p className="text-xs font-mono text-muted-foreground mt-1">
-              LAT: {report.latitude.toFixed(4)}, LNG: {report.longitude.toFixed(4)}
+              LAT: {Number(report.latitude).toFixed(4)}, LNG: {Number(report.longitude).toFixed(4)}
             </p>
           )}
         </div>

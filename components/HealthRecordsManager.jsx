@@ -199,10 +199,30 @@ export default function HealthRecordsManager() {
                 <p className="text-muted-foreground font-medium flex justify-center md:justify-start gap-2 text-sm mb-4">
                   <span>{selectedDog.breed}</span> • <span>{selectedDog.age}</span> • <span>{selectedDog.sex}</span>
                 </p>
-                <div className="bg-primary/20 text-primary px-3 py-1.5 rounded-lg flex items-center justify-center md:justify-start gap-2 text-sm font-bold w-fit mx-auto md:mx-0">
-                  <span>🤖 AI Assessment:</span>
-                  {selectedDog.aiHealthCheck?.label || "Pending"}
-                  <span className="opacity-70 text-xs">({selectedDog.aiHealthCheck?.confidence || "N/A"})</span>
+                <div className="bg-primary/5 border border-primary/20 p-4 rounded-xl w-full max-w-sm mx-auto md:mx-0 flex flex-col gap-3 shadow-sm">
+                  <div className="flex justify-between items-center text-sm font-bold text-primary">
+                    <span className="flex items-center gap-1.5">🤖 AI Assessment</span>
+                    <span className="bg-primary/20 px-2.5 py-0.5 rounded-md text-foreground">{selectedDog.aiHealthCheck?.label || "Pending"}</span>
+                  </div>
+                  {selectedDog.aiHealthCheck?.confidence && selectedDog.aiHealthCheck.confidence !== "N/A" && (
+                    <div className="flex flex-col gap-1.5 w-full mt-1">
+                      <div className="flex justify-between text-xs font-semibold text-muted-foreground">
+                        <span>Analysis Confidence</span>
+                        <span>{selectedDog.aiHealthCheck.confidence}</span>
+                      </div>
+                      <div className="h-2 w-full bg-background/50 rounded-full overflow-hidden border border-border/50">
+                        <motion.div 
+                            initial={{ width: 0 }}
+                            animate={{ width: selectedDog.aiHealthCheck.confidence }}
+                            transition={{ duration: 1, ease: "easeOut" }}
+                            className="h-full rounded-full" 
+                            style={{ 
+                                backgroundColor: parseInt(selectedDog.aiHealthCheck.confidence) > 85 ? '#22c55e' : parseInt(selectedDog.aiHealthCheck.confidence) > 60 ? '#eab308' : '#ef4444'
+                            }}
+                        />
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
               <button

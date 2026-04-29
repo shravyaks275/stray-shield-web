@@ -264,12 +264,27 @@ export default function DogCard({ dog, user }) {
 
                                     {/* AI Health Check Badge */}
                                     {dog.aiHealthCheck && (
-                                        <div className="mt-6 border-t border-border/30 pt-6 flex items-center justify-between bg-secondary/10 rounded-xl p-4">
-                                            <div className="text-sm font-bold text-foreground">
-                                                AI Health Check: {dog.aiHealthCheck.label}
+                                        <div className="mt-6 border-t border-border/30 pt-6 bg-secondary/10 rounded-xl p-4 flex flex-col gap-3">
+                                            <div className="flex items-center justify-between text-sm font-bold text-foreground">
+                                                <span className="flex items-center gap-1.5">🤖 AI Health Check</span>
+                                                <span className="px-3 py-1 bg-background/50 rounded-full border border-border/50 shadow-sm text-primary">{dog.aiHealthCheck.label}</span>
                                             </div>
-                                            <div className="text-xs font-semibold text-primary bg-primary/10 border border-primary/20 px-3 py-1 rounded-full">
-                                                Confidence: {dog.aiHealthCheck.confidence}
+                                            <div className="flex flex-col gap-1.5">
+                                                <div className="flex justify-between text-xs font-semibold text-muted-foreground">
+                                                    <span>Analysis Confidence</span>
+                                                    <span>{dog.aiHealthCheck.confidence}</span>
+                                                </div>
+                                                <div className="h-2 w-full bg-background/50 rounded-full overflow-hidden border border-border/50">
+                                                    <motion.div 
+                                                        initial={{ width: 0 }}
+                                                        animate={{ width: dog.aiHealthCheck.confidence }}
+                                                        transition={{ duration: 1, ease: "easeOut" }}
+                                                        className="h-full rounded-full" 
+                                                        style={{ 
+                                                            backgroundColor: parseInt(dog.aiHealthCheck.confidence) > 85 ? '#22c55e' : parseInt(dog.aiHealthCheck.confidence) > 60 ? '#eab308' : '#ef4444'
+                                                        }}
+                                                    />
+                                                </div>
                                             </div>
                                         </div>
                                     )}

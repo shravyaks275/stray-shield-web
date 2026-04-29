@@ -94,13 +94,27 @@ export default function ReportForm() {
     setGeoError("")
 
     navigator.geolocation.getCurrentPosition(
-      (position) => {
+      async (position) => {
         const { latitude, longitude } = position.coords
+        let address = `Lat: ${latitude.toFixed(4)}, Lng: ${longitude.toFixed(4)}`
+        
+        try {
+          const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`)
+          const data = await res.json()
+          if (data && data.display_name) {
+            // Simplify address to make it cleaner
+            const parts = data.display_name.split(', ')
+            address = parts.slice(0, 3).join(', ')
+          }
+        } catch (e) {
+          console.warn("Reverse geocoding failed", e)
+        }
+
         setFormData(prev => ({
           ...prev,
           latitude: latitude.toFixed(6),
           longitude: longitude.toFixed(6),
-          location: `Lat: ${latitude.toFixed(4)}, Lng: ${longitude.toFixed(4)}`
+          location: address
         }))
         setGeoLoading(false)
       },
@@ -263,10 +277,11 @@ export default function ReportForm() {
             const compressedImage = await compressImage(preview)
             const compressedBase64 = compressedImage.split(",")[1]
             
-            const res = await apiCall("/api/classify", {
+            const res = await fetch("/api/classify", {
               method: "POST",
+              headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ imageBuffer: compressedBase64 }),
-            })
+            }).then(r => r.json())
             aiResults.push(res.label || res.message || "Unknown")
           } catch (classifyErr) {
             console.warn("Image classification failed, using fallback:", classifyErr)
