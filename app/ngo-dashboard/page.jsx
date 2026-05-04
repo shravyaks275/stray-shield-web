@@ -5,14 +5,17 @@ import Navbar from "@/components/Navbar"
 import ProtectedRoute from "@/components/ProtectedRoute"
 import ReportCard from "@/components/ReportCard"
 import { getReports, updateReportStatus } from "@/utils/api"
-import { AlertCircle, RefreshCw, BarChart3, Clock, CheckCircle, Play } from 'lucide-react'
+import { AlertCircle, RefreshCw, BarChart3, Clock, CheckCircle, Play, MapPin } from 'lucide-react'
 import { motion, AnimatePresence } from "framer-motion"
+import { getNgoByName } from "@/config/ngoData"
 
 export default function NgoDashboard() {
   const [reports, setReports] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
   const [filter, setFilter] = useState("all")
+  const [ngoLocations, setNgoLocations] = useState([])
+  const [showMoreOpportunities, setShowMoreOpportunities] = useState(false)
   const [stats, setStats] = useState({
     total: 0,
     pending: 0,
@@ -21,8 +24,21 @@ export default function NgoDashboard() {
   })
 
   useEffect(() => {
+    // Get NGO info and locations
+    if (typeof window !== "undefined") {
+      let ngoName = localStorage.getItem("ngoName");
+      // If no NGO name stored, default to "Stray Shield Official" for testing
+      if (!ngoName) {
+        ngoName = "Stray Shield Official";
+        localStorage.setItem("ngoName", ngoName);
+      }
+      const ngo = getNgoByName(ngoName);
+      if (ngo) {
+        setNgoLocations(ngo.location);
+      }
+    }
     fetchReports()
-  }, []) // Remove filter dependency
+  }, [])
 
   // dummy report without api
   const fetchReports = async () => {
@@ -45,37 +61,108 @@ export default function NgoDashboard() {
 
     // 🔒 Backend disabled — using mock data
     const mockReports = [
+      // Stray Shield Official service areas: Jigani, Anekal
       {
-        id: 1,
-        title: "Injured dog near market",
-        description: "A stray dog with a limp spotted near Madivala market.",
+        id: 101,
+        title: "Injured dog in Jigani",
+        description: "A stray dog with limping found near Jigani market needs immediate care.",
         status: "pending",
-        location: "Madivala Market",
-        timestamp: "2025-11-19T10:30:00Z",
-        aiStatus: "Possible Injury",
-        contactName: "Rohan K",
-        contactPhone: "9876543210"
+        location: "Jigani",
+        timestamp: "2025-11-20T10:30:00Z",
+        aiStatus: "Injured",
+        contactName: "Prakash",
+        contactPhone: "9876543220"
       },
       {
-        id: 2,
-        title: "Puppies stuck in drain",
-        description: "Three puppies trapped in a storm drain near the bus stand.",
+        id: 102,
+        title: "Puppies rescue in Anekal",
+        description: "Three puppies trapped in a drain near Anekal bus station.",
         status: "in_progress",
-        location: "Anekal Bus Stand",
-        timestamp: "2025-11-18T14:15:00Z",
+        location: "Anekal",
+        timestamp: "2025-11-19T14:15:00Z",
         aiStatus: "Urgent Rescue",
         contactPhone: "9988776655"
       },
+      // Paws & Care Rescue service areas: Indiranagar, Hosa Road
       {
-        id: 3,
+        id: 201,
+        title: "Malnourished dog in Indiranagar",
+        description: "Stray dog showing signs of malnourishment in Indiranagar colony.",
+        status: "pending",
+        location: "Indiranagar",
+        timestamp: "2025-11-20T09:15:00Z",
+        aiStatus: "Malnourished",
+        contactName: "Ananya",
+        contactPhone: "9876543221"
+      },
+      {
+        id: 202,
+        title: "Sick dog at Hosa Road",
+        description: "Stray with visible skin condition needs treatment.",
+        status: "pending",
+        location: "Hosa Road",
+        timestamp: "2025-11-18T16:45:00Z",
+        aiStatus: "Skin Condition",
+        contactName: "Priya M",
+        contactPhone: "9876543222"
+      },
+      // Hope Animal Shelter service areas: Kudlu Gate, E-city
+      {
+        id: 301,
+        title: "Injured dog at Kudlu Gate",
+        description: "Dog with serious injury needs immediate medical attention.",
+        status: "pending",
+        location: "Kudlu Gate",
+        timestamp: "2025-11-20T11:00:00Z",
+        aiStatus: "Severe Injury",
+        contactName: "Rajesh K",
+        contactPhone: "9876543223"
+      },
+      {
+        id: 302,
+        title: "Stray family in E-city",
+        description: "Mother dog with two pups found near E-city tech park.",
+        status: "in_progress",
+        location: "E-city",
+        timestamp: "2025-11-19T13:30:00Z",
+        aiStatus: "Family Rescue",
+        contactName: "Deepak R",
+        contactPhone: "9876543224"
+      },
+      // City Pet Rescue service area: Vijaynagar
+      {
+        id: 401,
+        title: "Healthy dog in Vijaynagar",
+        description: "Stray dog in good health, candidate for adoption.",
+        status: "pending",
+        location: "Vijaynagar",
+        timestamp: "2025-11-20T08:20:00Z",
+        aiStatus: "Healthy",
+        contactName: "Kumar S",
+        contactPhone: "9876543225"
+      },
+      // Other locations (for "More Opportunities" section)
+      {
+        id: 501,
         title: "Rescue completed",
         description: "Dog rescued and taken to shelter.",
         status: "resolved",
-        location: "Koramangala Shelter",
+        location: "Koramangala",
         timestamp: "2025-11-17T09:00:00Z",
         aiStatus: "Safe",
         contactName: "Shelter Staff",
         contactEmail: "staff@stray-shield.org"
+      },
+      {
+        id: 502,
+        title: "Injured dog near market",
+        description: "A stray dog with severe injuries spotted near Madivala market.",
+        status: "pending",
+        location: "Madivala",
+        timestamp: "2025-11-19T10:30:00Z",
+        aiStatus: "Severely Injured",
+        contactName: "Rohan K",
+        contactPhone: "9876543210"
       },
     ];
 
@@ -111,7 +198,32 @@ export default function NgoDashboard() {
     }
   };
 
-  const filteredReports = filter === "all" ? reports : reports.filter((r) => r.status === filter)
+  // Separate reports into local and other locations
+  // Use substring matching for more flexible location filtering
+  const isLocationMatch = (reportLocation, ngoLocationsList) => {
+    return ngoLocationsList.some(ngoLoc =>
+      reportLocation.toLowerCase().includes(ngoLoc.toLowerCase()) ||
+      ngoLoc.toLowerCase().includes(reportLocation.toLowerCase())
+    );
+  };
+
+  const localReports = reports.filter(r => isLocationMatch(r.location, ngoLocations));
+  const otherLocationReports = reports.filter(r => !isLocationMatch(r.location, ngoLocations));
+
+  // Apply status filter
+  const filteredLocalReports = filter === "all" ? localReports : localReports.filter((r) => r.status === filter);
+  const filteredOtherReports = filter === "all" ? otherLocationReports : otherLocationReports.filter((r) => r.status === filter);
+
+  const getPriority = (report) => {
+    const statusStr = (report.aiStatus || report.aiStatuses?.[0] || "").toLowerCase();
+    if (statusStr.includes("severe") || statusStr.includes("priority") || statusStr.includes("urgent") || statusStr.includes("injured") || statusStr.includes("critical")) return 3;
+    if (statusStr.includes("minor") || statusStr.includes("skin") || statusStr.includes("dental") || statusStr.includes("healing") || statusStr.includes("possible")) return 2;
+    if (statusStr.includes("healthy") || statusStr.includes("excellent") || statusStr.includes("safe")) return 1;
+    return 0; // pending or unknown
+  }
+
+  const sortedLocalReports = [...filteredLocalReports].sort((a, b) => getPriority(b) - getPriority(a));
+  const sortedOtherReports = [...filteredOtherReports].sort((a, b) => getPriority(b) - getPriority(a));
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -210,7 +322,7 @@ export default function NgoDashboard() {
               <div className="w-12 h-12 border-4 border-primary/30 border-t-primary rounded-full animate-spin mb-4" />
               <p className="text-muted-foreground font-medium animate-pulse">Syncing reports...</p>
             </div>
-          ) : filteredReports.length === 0 ? (
+          ) : sortedLocalReports.length === 0 && sortedOtherReports.length === 0 ? (
             <div className="glass-panel p-16 text-center rounded-[2rem] border border-white/20">
               <div className="w-20 h-20 bg-secondary/50 rounded-full flex items-center justify-center mx-auto mb-6">
                 <AlertCircle className="w-8 h-8 text-muted-foreground" />
@@ -221,22 +333,86 @@ export default function NgoDashboard() {
               </p>
             </div>
           ) : (
-            <div>
-              <p className="text-sm font-bold text-muted-foreground uppercase tracking-wider mb-5 px-1">
-                Showing {filteredReports.length} {filter !== "all" && filter.replace("_", " ")} requests
-              </p>
-              <motion.div
-                variants={containerVariants}
-                initial="hidden"
-                animate="visible"
-                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8"
-              >
-                {filteredReports.map((report) => (
-                  <motion.div key={report.id} variants={itemVariants}>
-                    <ReportCard report={report} onUpdateStatus={handleUpdateStatus} />
+            <div className="space-y-12">
+              {/* Primary - Local Location Reports */}
+              <div>
+                <div className="flex items-center gap-2 mb-5">
+                  <MapPin className="w-5 h-5 text-primary" />
+                  <p className="text-sm font-bold text-muted-foreground uppercase tracking-wider">
+                    In Your Service Areas ({sortedLocalReports.length})
+                  </p>
+                </div>
+                {sortedLocalReports.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <p className="font-medium">No reports in your service areas yet.</p>
+                  </div>
+                ) : (
+                  <motion.div
+                    variants={containerVariants}
+                    initial="hidden"
+                    animate="visible"
+                    className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8"
+                  >
+                    {sortedLocalReports.map((report) => (
+                      <motion.div key={report.id} variants={itemVariants}>
+                        <ReportCard report={report} onUpdateStatus={handleUpdateStatus} />
+                      </motion.div>
+                    ))}
                   </motion.div>
-                ))}
-              </motion.div>
+                )}
+              </div>
+
+              {/* Secondary - Other Location Reports ("More Opportunities") */}
+              {sortedOtherReports.length > 0 && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="border-t border-white/10 pt-12"
+                >
+                  <div className="flex items-center justify-between mb-5">
+                    <div className="flex items-center gap-2">
+                      <span className="w-2 h-2 bg-secondary rounded-full" />
+                      <p className="text-sm font-bold text-muted-foreground uppercase tracking-wider">
+                        More Opportunities ({sortedOtherReports.length})
+                      </p>
+                    </div>
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={() => setShowMoreOpportunities(!showMoreOpportunities)}
+                      className="text-xs font-bold px-3 py-1 rounded-full bg-secondary/30 hover:bg-secondary/50 border border-secondary/50 transition-colors"
+                    >
+                      {showMoreOpportunities ? "Hide" : "Show"} Opportunities
+                    </motion.button>
+                  </div>
+                  <p className="text-xs text-muted-foreground mb-5">
+                    Help expand Stray Shield's impact! You can coordinate with other NGOs or expand your service areas to handle these cases.
+                  </p>
+                  <AnimatePresence>
+                    {showMoreOpportunities && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: "auto" }}
+                        exit={{ opacity: 0, height: 0 }}
+                        className="overflow-hidden"
+                      >
+                        <motion.div
+                          variants={containerVariants}
+                          initial="hidden"
+                          animate="visible"
+                          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8"
+                        >
+                          {sortedOtherReports.map((report) => (
+                            <motion.div key={report.id} variants={itemVariants}>
+                              <ReportCard report={report} onUpdateStatus={handleUpdateStatus} />
+                            </motion.div>
+                          ))}
+                        </motion.div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </motion.div>
+              )}
             </div>
           )}
         </main>

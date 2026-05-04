@@ -6,11 +6,11 @@ import {
   Plus, Search, Edit2, Trash2, X, Activity,
   Syringe, Stethoscope, AlertCircle, CheckCircle2
 } from "lucide-react";
-
 import { useEffect } from "react";
 import { initialDogs } from "@/lib/mockData";
 
 export default function HealthRecordsManager() {
+
   const [dogs, setDogs] = useState(() => {
     if (typeof window !== "undefined") {
       const saved = localStorage.getItem("straydogs_data_v3");
@@ -26,6 +26,19 @@ export default function HealthRecordsManager() {
   const [selectedDogId, setSelectedDogId] = useState(dogs[0]?.id || null);
   const [searchQuery, setSearchQuery] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isEditDogOpen, setIsEditDogOpen] = useState(false);
+  const [editDogData, setEditDogData] = useState(null);
+  const [deleteDogId, setDeleteDogId] = useState(null);
+
+  const [isAddDogOpen, setIsAddDogOpen] = useState(false);
+
+  const [newDog, setNewDog] = useState({
+    name: "",
+    breed: "",
+    age: "",
+    sex: "",
+    image: null
+  });
 
   // Form state
   const [editingRecordId, setEditingRecordId] = useState(null);
@@ -143,6 +156,15 @@ export default function HealthRecordsManager() {
             🐶 Select Dog
           </h2>
 
+          <button
+            onClick={() => setIsAddDogOpen(true)}
+            className="w-full mb-4 flex items-center justify-center gap-2 bg-primary text-white py-2 rounded-xl font-bold hover:bg-primary/90 transition"
+          >
+            <Plus className="w-4 h-4" />
+            Add New Dog
+          </button>
+
+
           <div className="relative mb-4">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <input
@@ -164,11 +186,17 @@ export default function HealthRecordsManager() {
                   : "bg-background/20 border-transparent hover:bg-background/50 text-muted-foreground hover:text-foreground"
                   }`}
               >
-                <img
-                  src={dog.image}
-                  alt={dog.name}
-                  className="w-10 h-10 rounded-full object-cover shadow-sm bg-muted"
-                />
+                {dog.image ? (
+                  <img
+                    src={dog.image}
+                    alt={dog.name}
+                    className="w-10 h-10 rounded-full object-cover"
+                  />
+                ) : (
+                  <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center text-xs">
+                    🐶
+                  </div>
+                )}
                 <div>
                   <div className="font-bold">{dog.name}</div>
                   <div className="text-xs opacity-70">{dog.breed} • {dog.age}</div>
@@ -211,26 +239,59 @@ export default function HealthRecordsManager() {
                         <span>{selectedDog.aiHealthCheck.confidence}</span>
                       </div>
                       <div className="h-2 w-full bg-background/50 rounded-full overflow-hidden border border-border/50">
-                        <motion.div 
-                            initial={{ width: 0 }}
-                            animate={{ width: selectedDog.aiHealthCheck.confidence }}
-                            transition={{ duration: 1, ease: "easeOut" }}
-                            className="h-full rounded-full" 
-                            style={{ 
-                                backgroundColor: parseInt(selectedDog.aiHealthCheck.confidence) > 85 ? '#22c55e' : parseInt(selectedDog.aiHealthCheck.confidence) > 60 ? '#eab308' : '#ef4444'
-                            }}
+                        <motion.div
+                          initial={{ width: 0 }}
+                          animate={{ width: selectedDog.aiHealthCheck.confidence }}
+                          transition={{ duration: 1, ease: "easeOut" }}
+                          className="h-full rounded-full"
+                          style={{
+                            backgroundColor: parseInt(selectedDog.aiHealthCheck.confidence) > 85 ? '#22c55e' : parseInt(selectedDog.aiHealthCheck.confidence) > 60 ? '#eab308' : '#ef4444'
+                          }}
                         />
                       </div>
                     </div>
                   )}
                 </div>
               </div>
-              <button
-                onClick={openAddModal}
-                className="flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground px-4 py-2 flex-shrink-0 rounded-xl font-bold shadow-md transition-transform active:scale-95 whitespace-nowrap mt-4 md:mt-0"
-              >
-                <Plus className="w-4 h-4" /> Add Record
-              </button>
+
+              <div className="flex flex-col gap-8 mt-4 md:mt-0">
+
+                {/* TOP ROW */}
+                <div className="flex gap-3">
+
+                  {/* EDIT */}
+                  <button
+                    onClick={() => {
+                      setEditDogData(selectedDog);
+                      setIsEditDogOpen(true);
+                    }}
+                    className="flex items-center gap-2 bg-secondary px-4 py-2 rounded-xl text-sm font-bold hover:bg-secondary/70"
+                  >
+                    <Edit2 className="w-4 h-4" />
+                    Edit
+                  </button>
+
+                  {/* DELETE */}
+                  <button
+                    onClick={() => setDeleteDogId(selectedDog.id)}
+                    className="flex items-center gap-2 bg-red-500 text-white px-4 py-2 rounded-xl text-sm font-bold hover:bg-red-600"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                    Delete
+                  </button>
+
+                </div>
+
+                {/* SECOND ROW */}
+                <button
+                  onClick={openAddModal}
+                  className="flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground px-4 py-2 rounded-xl font-bold shadow-md transition-transform active:scale-95"
+                >
+                  <Plus className="w-4 h-4" />
+                  Add Record
+                </button>
+
+              </div>
             </div>
 
             {selectedDog.healthRecords && selectedDog.healthRecords.length > 0 ? (
@@ -422,6 +483,295 @@ export default function HealthRecordsManager() {
                 </div>
               </form>
             </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Add Dog Modal */}
+      <AnimatePresence>
+        {isAddDogOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
+            <motion.div
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              className="absolute inset-0 bg-background/80 backdrop-blur-sm"
+              onClick={() => setIsAddDogOpen(false)}
+            />
+
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="relative w-full max-w-md bg-card border rounded-3xl p-6"
+            >
+              <h3 className="text-xl font-bold mb-4">Add New Dog</h3>
+
+              <div className="space-y-3">
+                <input
+                  placeholder="Name"
+                  className="w-full border p-2 rounded-xl"
+                  value={newDog.name}
+                  onChange={(e) => setNewDog({ ...newDog, name: e.target.value })}
+                />
+
+                <input
+                  placeholder="Breed"
+                  className="w-full border p-2 rounded-xl"
+                  value={newDog.breed}
+                  onChange={(e) => setNewDog({ ...newDog, breed: e.target.value })}
+                />
+
+                <input
+                  placeholder="Age"
+                  className="w-full border p-2 rounded-xl"
+                  value={newDog.age}
+                  onChange={(e) => setNewDog({ ...newDog, age: e.target.value })}
+                />
+
+                <input
+                  placeholder="Sex"
+                  className="w-full border p-2 rounded-xl"
+                  value={newDog.sex}
+                  onChange={(e) => setNewDog({ ...newDog, sex: e.target.value })}
+                />
+                <div className="w-full">
+                  <label className="text-xs font-bold text-muted-foreground uppercase mb-2 block">
+                    Upload Image
+                  </label>
+
+                  <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-border rounded-xl cursor-pointer hover:bg-muted/40 transition">
+
+                    {/* Hidden input */}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => {
+                        const file = e.target.files[0];
+                        if (!file) return;
+
+                        const reader = new FileReader();
+                        reader.onloadend = () => {
+                          setNewDog({ ...newDog, image: reader.result });
+                        };
+                        reader.readAsDataURL(file);
+                      }}
+                    />
+
+                    {/* UI */}
+                    {!newDog.image ? (
+                      <>
+                        <span className="text-2xl">📷</span>
+                        <p className="text-sm text-muted-foreground mt-1">
+                          Click to upload image
+                        </p>
+                      </>
+                    ) : (
+                      <img
+                        src={newDog.image}
+                        alt="Preview"
+                        className="h-full w-full object-cover rounded-xl"
+                      />
+                    )}
+                  </label>
+                </div>
+              </div>
+
+              <div className="flex gap-3 mt-6">
+                <button
+                  onClick={() => setIsAddDogOpen(false)}
+                  className="flex-1 border rounded-xl py-2"
+                >
+                  Cancel
+                </button>
+
+                <button
+                  onClick={() => {
+                    const newEntry = {
+                      ...newDog,
+                      image: newDog.image || "/placeholder-dog.png",
+                      id: Date.now(),
+                      healthRecords: [],
+                      status: "Available"
+                    };
+
+                    setDogs([...dogs, newEntry]);
+                    setSelectedDogId(newEntry.id);
+                    setIsAddDogOpen(false);
+
+                    //  RESET FORM (IMPORTANT)
+                    setNewDog({
+                      name: "",
+                      breed: "",
+                      age: "",
+                      sex: "",
+                      image: null
+                    });
+                  }}
+                  className="flex-1 bg-primary text-white rounded-xl py-2"
+                >
+                  Add Dog
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Edit Dog Modal */}
+      <AnimatePresence>
+        {isEditDogOpen && editDogData && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
+            <div
+              className="absolute inset-0 bg-background/80 backdrop-blur-sm"
+              onClick={() => {
+                setIsEditDogOpen(false);
+                setEditDogData(null);
+              }}
+            />
+
+            <div className="relative w-full max-w-md bg-card border rounded-3xl p-6">
+              <h3 className="text-xl font-bold mb-4">Edit Dog</h3>
+
+              <div className="space-y-3">
+                <input
+                  value={editDogData.name}
+                  onChange={(e) =>
+                    setEditDogData({ ...editDogData, name: e.target.value })
+                  }
+                  className="w-full border p-2 rounded-xl"
+                  placeholder="Name"
+                />
+
+                <input
+                  value={editDogData.breed}
+                  onChange={(e) =>
+                    setEditDogData({ ...editDogData, breed: e.target.value })
+                  }
+                  className="w-full border p-2 rounded-xl"
+                  placeholder="Breed"
+                />
+
+                <input
+                  value={editDogData.age}
+                  onChange={(e) =>
+                    setEditDogData({ ...editDogData, age: e.target.value })
+                  }
+                  className="w-full border p-2 rounded-xl"
+                  placeholder="Age"
+                />
+
+                <input
+                  value={editDogData.sex}
+                  onChange={(e) =>
+                    setEditDogData({ ...editDogData, sex: e.target.value })
+                  }
+                  className="w-full border p-2 rounded-xl"
+                  placeholder="Sex"
+                />
+                <div>
+                  <label className="text-xs font-bold text-muted-foreground uppercase mb-2 block">
+                    Update Image
+                  </label>
+
+                  <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-border rounded-xl cursor-pointer hover:bg-muted/40 transition">
+
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => {
+                        const file = e.target.files[0];
+                        if (!file) return;
+
+                        const reader = new FileReader();
+                        reader.onloadend = () => {
+                          setEditDogData({ ...editDogData, image: reader.result });
+                        };
+                        reader.readAsDataURL(file);
+                      }}
+                    />
+
+                    {!editDogData.image ? (
+                      <>
+                        <span className="text-2xl">📷</span>
+                        <p className="text-sm text-muted-foreground mt-1">
+                          Upload new image
+                        </p>
+                      </>
+                    ) : (
+                      <img
+                        src={editDogData.image}
+                        alt="Preview"
+                        className="h-full w-full object-cover rounded-xl"
+                      />
+                    )}
+                  </label>
+                </div>
+              </div>
+
+              <div className="flex gap-3 mt-6">
+                <button
+                  onClick={() => {
+                    setIsEditDogOpen(false);
+                    setEditDogData(null); 
+                  }}
+                  className="flex-1 border rounded-xl py-2"
+                >
+                  Cancel
+                </button>
+
+                <button
+                  onClick={() => {
+                    setDogs(dogs.map(d =>
+                      d.id === editDogData.id ? editDogData : d
+                    ));
+                    setIsEditDogOpen(false);
+                  }}
+                  className="flex-1 bg-primary text-white rounded-xl py-2"
+                >
+                  Save
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Delete Dog Confirmation */}
+      <AnimatePresence>
+        {deleteDogId && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center">
+            <div
+              className="absolute inset-0 bg-black/50"
+              onClick={() => setDeleteDogId(null)}
+            />
+
+            <div className="relative bg-card p-6 rounded-2xl shadow-xl w-full max-w-sm">
+              <h3 className="text-lg font-bold mb-2">Delete Dog?</h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                This will remove the dog and all its records.
+              </p>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setDeleteDogId(null)}
+                  className="flex-1 border rounded-xl py-2"
+                >
+                  Cancel
+                </button>
+
+                <button
+                  onClick={() => {
+                    setDogs(dogs.filter(d => d.id !== deleteDogId));
+                    setSelectedDogId(null);
+                    setDeleteDogId(null);
+                  }}
+                  className="flex-1 bg-red-500 text-white rounded-xl py-2"
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
           </div>
         )}
       </AnimatePresence>

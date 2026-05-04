@@ -1,26 +1,33 @@
 import { NextResponse } from "next/server";
-import * as tf from "@tensorflow/tfjs-node";
-import * as mobilenet from "@tensorflow-models/mobilenet";
-import * as knnClassifier from "@tensorflow-models/knn-classifier";
+
 import fs from "fs";
 import path from "path";
 
 let model;
 let classifier;
+let modelLoadFailed = false;
 
 /**
  * Load MobileNet + classifier dataset from saved JSON
  */
 async function loadModel() {
+  if (modelLoadFailed) {
+    throw new Error("Model load previously failed. Fast-failing to fallback.");
+  }
+
   if (!model) {
     try {
-      model = await mobilenet.load();
-      classifier = knnClassifier.create();
-
       const datasetPath = path.join(process.cwd(), "ml/health_model/classifier.json");
       if (!fs.existsSync(datasetPath)) {
         throw new Error("Classifier dataset not found. Please run ml/train.js first.");
       }
+
+      const tf = await import("@tensorflow/tfjs-node");
+      const mobilenet = await import("@tensorflow-models/mobilenet");
+      const knnClassifier = await import("@tensorflow-models/knn-classifier");
+
+      model = await mobilenet.load();
+      classifier = knnClassifier.create();
 
       const dataset = JSON.parse(fs.readFileSync(datasetPath));
       const tensorObj = {};
@@ -29,9 +36,10 @@ async function loadModel() {
       });
       classifier.setClassifierDataset(tensorObj);
     } catch (err) {
-      console.warn("[v0] Model load failed; classifier will fallback:", err);
+      console.warn("[v0] Model load failed; classifier will fallback:", err.message);
       model = null;
       classifier = null;
+      modelLoadFailed = true;
       throw err;
     }
   }
@@ -53,6 +61,7 @@ export async function POST(req) {
       await loadModel();
 
       // Decode base64 image → tensor
+      const tf = await import("@tensorflow/tfjs-node");
       const imgTensor = tf.node.decodeImage(Buffer.from(imageBuffer, "base64")).expandDims(0);
 
       // Extract embedding from MobileNet
@@ -69,7 +78,7 @@ export async function POST(req) {
         confidence: result.confidences[result.label],
       });
     } catch (innerErr) {
-      console.warn("[v0] Classifier fallback used (model unavailable)", innerErr);
+      console.warn("[v0] Classifier fallback used (model unavailable)", innerErr.message);
       
       const bufferLength = typeof imageBuffer === "string" ? imageBuffer.length : 0;
       const conditions = [

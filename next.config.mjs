@@ -6,17 +6,23 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
-  api: {
-    bodyParser: {
-      sizeLimit: '5mb',
-    },
-  },
   webpack: (config, { isServer }) => {
     if (!isServer) {
       config.resolve.fallback = {
         ...config.resolve.fallback,
         '@mapbox/node-pre-gyp': false,
         'node-pre-gyp': false,
+        'mock-aws-s3': false,
+        'aws-sdk': false,
+        'nock': false,
+        'worker_threads': false,
+        'fs': false,
+        'path': false,
+      }
+      // Exclude node_modules that shouldn't be bundled
+      config.resolve.alias = {
+        ...config.resolve.alias,
+        '@mapbox/node-pre-gyp': false,
       }
     }
     return config
