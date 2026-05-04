@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
-import { AlertCircle, PawPrint, CheckCircle, Clock, RefreshCw } from "lucide-react";
+import { useEffect, useState, useMemo, useCallback } from "react";
+import { AlertCircle, PawPrint, CheckCircle, Clock, RefreshCw, Plus, Mail, Phone, Globe, TrendingUp } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { initialDogs } from "@/lib/mockData";
+import { getNgoByName } from "@/config/ngoData";
 
 export default function AdoptionBoard() {
     const [dogs, setDogs] = useState([]);
@@ -11,44 +12,44 @@ export default function AdoptionBoard() {
     const [error, setError] = useState("");
     const [filter, setFilter] = useState("all");
 
-    const fetchDogs = async () => {
+    const fetchDogs = useCallback(async () => {
         setLoading(true);
         setError("");
         try {
             // Load unified mock data
             let mockDogs = [];
             if (typeof window !== "undefined") {
-              const saved = localStorage.getItem("straydogs_data_v3");
-              if (saved) {
-                try {
-                  mockDogs = JSON.parse(saved);
-                } catch (err) {
-                  console.warn("[v0] adoption board stale localStorage, resetting:", err);
-                  mockDogs = [];
+                const saved = localStorage.getItem("straydogs_data_v3");
+                if (saved) {
+                    try {
+                        mockDogs = JSON.parse(saved);
+                    } catch (err) {
+                        console.warn("[v0] adoption board stale localStorage, resetting:", err);
+                        mockDogs = [];
+                    }
                 }
-              }
             }
 
             if (!Array.isArray(mockDogs) || mockDogs.length === 0) {
-              mockDogs = initialDogs;
+                mockDogs = initialDogs;
             }
 
             // Remove accidental duplicates and standardize shape
             const dogMap = new Map();
             mockDogs.forEach((d, idx) => {
-              const id = d.id ?? d.dogId ?? `dog-${idx}`
-              if (!dogMap.has(id)) {
-                dogMap.set(id, {
-                  ...d,
-                  dogId: id,
-                  interestedUsers: d.interestedUsers || (d.status === "Reviewing" ? [{ userName: "Review Applicant" }] : []),
-                })
-              }
+                const id = d.id ?? d.dogId ?? `dog-${idx}`
+                if (!dogMap.has(id)) {
+                    dogMap.set(id, {
+                        ...d,
+                        dogId: id,
+                        interestedUsers: d.interestedUsers || (d.status === "Reviewing" ? [{ userName: "Review Applicant" }] : []),
+                    })
+                }
             })
 
             const mergedDogs = Array.from(dogMap.values())
             if (typeof window !== "undefined") {
-              localStorage.setItem("straydogs_data_v3", JSON.stringify(mergedDogs))
+                localStorage.setItem("straydogs_data_v3", JSON.stringify(mergedDogs))
             }
             setDogs(mergedDogs);
         } catch (err) {
@@ -57,7 +58,7 @@ export default function AdoptionBoard() {
         } finally {
             setLoading(false);
         }
-    };
+    }, []);
 
     useEffect(() => {
         fetchDogs();
@@ -70,7 +71,7 @@ export default function AdoptionBoard() {
                     dog.dogId === dogId ? { ...dog, status: newStatus } : dog
                 );
                 // Also update localStorage
-                const mappedBack = updated.map(d => ({...d, id: d.dogId}));
+                const mappedBack = updated.map(d => ({ ...d, id: d.dogId }));
                 localStorage.setItem("straydogs_data_v3", JSON.stringify(mappedBack));
                 return updated;
             });
@@ -80,13 +81,15 @@ export default function AdoptionBoard() {
         }
     };
 
-    const filteredDogs = useMemo(() => dogs.filter((dog) => {
-        if (filter === "all") return true;
-        if (filter === "available") return dog.status === "Available";
-        if (filter === "adopted") return dog.status === "Adopted";
-        if (filter === "in_progress") return dog.interestedUsers.length > 0 && dog.status === "Available";
-        return true;
-    }), [dogs, filter]);
+    const filteredDogs = useMemo(() => {
+        return dogs.filter((dog) => {
+            if (filter === "all") return true;
+            if (filter === "available") return dog.status === "Available";
+            if (filter === "adopted") return dog.status === "Adopted";
+            if (filter === "in_progress") return dog.interestedUsers.length > 0 && dog.status === "Available";
+            return true;
+        });
+    }, [dogs, filter]);
 
     const containerVariants = {
         hidden: { opacity: 0 },
@@ -105,7 +108,7 @@ export default function AdoptionBoard() {
                 initial={{ opacity: 0, y: -20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5 }}
-                className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8"
+                className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8"
             >
                 <StatCard
                     icon={<PawPrint className="w-8 h-8 text-primary" />}
@@ -128,6 +131,13 @@ export default function AdoptionBoard() {
                     colorClass="bg-indigo-500/5 border-indigo-500/20 text-foreground"
                     glow="shadow-[0_0_30px_-10px_rgba(99,102,241,0.3)]"
                 />
+                <StatCard
+                    icon={<TrendingUp className="w-8 h-8 text-orange-500" />}
+                    label="Success Rate"
+                    value={dogs.length > 0 ? Math.round((dogs.filter((d) => d.status === "Adopted").length / dogs.length) * 100) : 0 + "%"}
+                    colorClass="bg-orange-500/5 border-orange-500/20 text-foreground"
+                    glow="shadow-[0_0_30px_-10px_rgba(249,115,22,0.3)]"
+                />
             </motion.div>
 
             {/* Filter and Refresh Controls */}
@@ -143,8 +153,8 @@ export default function AdoptionBoard() {
                             key={status}
                             onClick={() => setFilter(status)}
                             className={`px-5 py-2.5 rounded-xl capitalize text-sm font-bold transition-all relative ${filter === status
-                                    ? "text-primary-foreground shadow-sm"
-                                    : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
+                                ? "text-primary-foreground shadow-sm"
+                                : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
                                 }`}
                         >
                             {filter === status && (
@@ -197,18 +207,19 @@ export default function AdoptionBoard() {
                 </motion.div>
             ) : (
                 <motion.div
-                    variants={containerVariants}
-                    initial="hidden"
-                    animate="visible"
-                    className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8"
-                >
-                    {filteredDogs.map((dog) => (
-                        <motion.div
-                            key={dog.dogId}
-                            variants={itemVariants}
-                            whileHover={{ y: -8, scale: 1.015 }}
-                            className="bg-card glass rounded-[1.5rem] border border-border/50 shadow-lg overflow-hidden flex flex-col transition-all hover:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.3)] relative group cursor-pointer"
-                        >
+  variants={containerVariants}
+  initial="hidden"
+  animate="visible"
+  className="flex gap-6 overflow-x-auto pb-4 scroll-smooth snap-x snap-mandatory scrollbar-hide
+  "
+>
+  {filteredDogs.map((dog) => (
+    <motion.div
+      key={dog.dogId}
+      variants={itemVariants}
+      whileHover={{ y: -5 }}
+      className="min-w-[300px] max-w-[320px] bg-card glass rounded-[1.5rem] border border-border/50 shadow-lg overflow-hidden flex flex-col transition-all"
+    >
                             {/* Accent Gradient Line at Top */}
                             <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-primary via-indigo-500 to-transparent opacity-50 group-hover:opacity-100 transition-opacity" />
 
@@ -223,7 +234,35 @@ export default function AdoptionBoard() {
                                     </span>
                                 </div>
 
-                                <div className="mt-4 pt-4 border-t border-white/10 flex-grow flex flex-col">
+                                {/* NGO Contact Info */}
+                                {(() => {
+                                    const ngo = getNgoByName(dog.ngo);
+                                    return ngo ? (
+                                        <div className="mb-4 p-3 bg-primary/5 border border-primary/20 rounded-xl space-y-1.5">
+                                            <p className="text-xs font-bold text-primary uppercase">Managed by: {ngo.name}</p>
+                                            <div className="space-y-1 text-xs">
+                                                {ngo.phone && (
+                                                    <div className="flex items-center gap-2">
+                                                        <Phone className="w-3 h-3 text-primary" />
+                                                        <a href={`tel:${ngo.phone}`} className="text-foreground/80 hover:text-primary font-mono">
+                                                            {ngo.phone}
+                                                        </a>
+                                                    </div>
+                                                )}
+                                                {ngo.email && (
+                                                    <div className="flex items-center gap-2">
+                                                        <Mail className="w-3 h-3 text-primary" />
+                                                        <a href={`mailto:${ngo.email}`} className="text-foreground/80 hover:text-primary truncate">
+                                                            {ngo.email}
+                                                        </a>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    ) : null;
+                                })()}
+
+                                <div className="mt-2 pt-4 border-t border-white/10 flex-grow flex flex-col">
                                     <h4 className="text-xs uppercase tracking-wider font-extrabold text-foreground opacity-60 mb-3 flex items-center gap-1.5">
                                         <Clock className="w-3.5 h-3.5" /> Interested Adopters
                                     </h4>

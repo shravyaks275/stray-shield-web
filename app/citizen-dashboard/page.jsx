@@ -11,6 +11,8 @@ export default function CitizenDashboard() {
   const [dogs, setDogs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("all");
+  const [selectedLocation, setSelectedLocation] = useState("All");
+  const [selectedNgo, setSelectedNgo] = useState("All");
   const [userPreferences, setUserPreferences] = useState({
     lifestyle: "active",
     household: "single",
@@ -30,7 +32,14 @@ export default function CitizenDashboard() {
       const saved = localStorage.getItem("straydogs_data_v3");
       if (saved) {
         try {
-          dogData = JSON.parse(saved);
+          const parsed = JSON.parse(saved);
+
+          // FIX: merge with initialDogs to include new fields like contact
+          dogData = parsed.map((dog, index) => ({
+            ...initialDogs[index], // ensures contact + new fields
+            ...dog
+          }));
+
         } catch (err) {
           console.warn("[v0] citizen dashboard got stale data, resetting:", err);
           dogData = initialDogs;
@@ -72,10 +81,37 @@ export default function CitizenDashboard() {
     visible: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 24 } }
   };
 
+  const locations = useMemo(() => {
+    return ["All", ...Array.from(new Set(dogs.map(d => d.location))).filter(Boolean)];
+  }, [dogs]);
+
+  const ngos = useMemo(() => {
+    let filteredForNgo = dogs;
+    if (selectedLocation !== "All") {
+      filteredForNgo = dogs.filter(d => d.location === selectedLocation);
+    }
+    return ["All", ...Array.from(new Set(filteredForNgo.map(d => d.ngo))).filter(Boolean)];
+  }, [dogs, selectedLocation]);
+
+  // Reset NGO when location changes
+  useEffect(() => {
+    setSelectedNgo("All");
+  }, [selectedLocation]);
+
   const filteredDogs = useMemo(() => {
-    if (filter === "all") return dogs;
-    return dogs.filter(dog => calculateMatch(dog, userPreferences) >= 5);
-  }, [dogs, filter, userPreferences]);
+    let result = dogs;
+
+    if (selectedLocation !== "All") {
+      result = result.filter(dog => dog.location === selectedLocation);
+    }
+
+    if (selectedNgo !== "All") {
+      result = result.filter(dog => dog.ngo === selectedNgo);
+    }
+
+    if (filter === "all") return result;
+    return result.filter(dog => calculateMatch(dog, userPreferences) >= 5);
+  }, [dogs, filter, userPreferences, selectedLocation, selectedNgo]);
 
   return (
     <ProtectedRoute userType="citizen">
@@ -105,23 +141,54 @@ export default function CitizenDashboard() {
             </motion.p>
           </div>
 
+          <div className="flex justify-end w-full">
+            <div className="flex gap-3 w-auto mb-1">
 
+              <div className="w-40">
+                <label className="text-xs font-bold text-muted-foreground uppercase px-2 mb-1 block">Location</label>
+                <select
+                  value={selectedLocation}
+                  onChange={(e) => setSelectedLocation(e.target.value)}
+                  className="w-full bg-background/50 border border-border/50 rounded-xl px-2 pr-8 py-2 text-sm font-medium text-foreground focus:ring-2 focus:ring-primary focus:outline-none transition-shadow"
+                >
+                  {locations.map(loc => (
+                    <option key={loc} value={loc}>{loc}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="w-40">
+                <label className="text-xs font-bold text-muted-foreground uppercase px-2 mb-1 block">NGO</label>
+                <select
+                  value={selectedNgo}
+                  onChange={(e) => setSelectedNgo(e.target.value)}
+                  className="w-full bg-background/50 border border-border/50 rounded-xl px-2 pr-8 py-2 text-sm font-medium text-foreground focus:ring-2 focus:ring-primary focus:outline-none transition-shadow"
+                >
+                  {ngos.map(ngo => (
+                    <option key={ngo} value={ngo}>{ngo}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          </div>
 
           {/* New Personality Inputs & Filter */}
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
             className="mb-2 p-4 bg-secondary/10 border border-white/10 rounded-[2rem] backdrop-blur-md shadow-lg"
           >
-            <h3 className="text-xl font-black text-foreground mb-4 tracking-tight">Match Personality</h3>
-            
+            <div className="flex flex-col md:flex-row justify-between md:items-end gap-4 mb-4">
+              <h3 className="text-xl font-black text-foreground tracking-tight">Find Your Match</h3>
+
+            </div>
+
             {/* Row 1: Dropdowns + Apply */}
             <div className="flex flex-col md:flex-row gap-4 mb-4 items-end border-b border-border/50 pb-6">
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 flex-grow w-full">
                 <div>
                   <label className="text-xs font-bold text-muted-foreground uppercase px-2 mb-2 block">Lifestyle</label>
-                  <select 
-                    value={userPreferences.lifestyle} 
-                    onChange={(e) => setUserPreferences({...userPreferences, lifestyle: e.target.value})}
+                  <select
+                    value={userPreferences.lifestyle}
+                    onChange={(e) => setUserPreferences({ ...userPreferences, lifestyle: e.target.value })}
                     className="w-full bg-background/50 border border-border/50 rounded-xl px-2 pr-8 py-2.5 text-sm font-medium text-foreground focus:ring-2 focus:ring-primary focus:outline-none transition-shadow"
                   >
                     <option value="active">Active</option>
@@ -131,9 +198,9 @@ export default function CitizenDashboard() {
                 </div>
                 <div>
                   <label className="text-xs font-bold text-muted-foreground px-2 uppercase mb-2 block">Household</label>
-                  <select 
-                    value={userPreferences.household} 
-                    onChange={(e) => setUserPreferences({...userPreferences, household: e.target.value})}
+                  <select
+                    value={userPreferences.household}
+                    onChange={(e) => setUserPreferences({ ...userPreferences, household: e.target.value })}
                     className="w-full bg-background/50 border border-border/50 rounded-xl px-2 pr-8 py-2.5 text-sm font-medium text-foreground focus:ring-2 focus:ring-primary focus:outline-none transition-shadow"
                   >
                     <option value="single">Single</option>
@@ -143,9 +210,9 @@ export default function CitizenDashboard() {
                 </div>
                 <div>
                   <label className="text-xs font-bold text-muted-foreground uppercase px-2 mb-2 block">Experience</label>
-                  <select 
-                    value={userPreferences.experience} 
-                    onChange={(e) => setUserPreferences({...userPreferences, experience: e.target.value})}
+                  <select
+                    value={userPreferences.experience}
+                    onChange={(e) => setUserPreferences({ ...userPreferences, experience: e.target.value })}
                     className="w-full bg-background/50 border border-border/50 rounded-xl px-2 pr-8 py-2.5 text-sm font-medium text-foreground focus:ring-2 focus:ring-primary focus:outline-none transition-shadow"
                   >
                     <option value="beginner">Beginner</option>
@@ -155,9 +222,9 @@ export default function CitizenDashboard() {
                 </div>
                 <div>
                   <label className="text-xs font-bold text-muted-foreground uppercase px-2 mb-2 block">Space</label>
-                  <select 
-                    value={userPreferences.space} 
-                    onChange={(e) => setUserPreferences({...userPreferences, space: e.target.value})}
+                  <select
+                    value={userPreferences.space}
+                    onChange={(e) => setUserPreferences({ ...userPreferences, space: e.target.value })}
                     className="w-full bg-background/50 border border-border/50 rounded-xl px-2 pr-8 py-2.5 text-sm font-medium text-foreground focus:ring-2 focus:ring-primary focus:outline-none transition-shadow"
                   >
                     <option value="apartment">Apartment</option>
@@ -166,9 +233,9 @@ export default function CitizenDashboard() {
                   </select>
                 </div>
               </div>
-              
-              <button 
-                onClick={() => setFilter("for_me")} 
+
+              <button
+                onClick={() => setFilter("for_me")}
                 className="h-[42px] px-8 rounded-xl font-bold text-sm bg-primary text-primary-foreground hover:shadow-[0_0_20px_-5px_rgba(var(--primary),0.5)] transition-all flex-shrink-0 w-full md:w-auto"
               >
                 Apply
@@ -177,29 +244,27 @@ export default function CitizenDashboard() {
 
             {/* Row 2: View Toggles */}
             <div className="flex gap-3 pt-2">
-              <button 
-                onClick={() => setFilter("all")} 
-                className={`flex-1 sm:flex-none px-6 py-2.5 rounded-xl font-bold text-sm transition-all border ${
-                  filter === "all" 
-                    ? "bg-secondary text-secondary-foreground border-transparent shadow-sm" 
-                    : "bg-background/40 hover:bg-background/80 text-foreground border-border/60"
-                }`}
+              <button
+                onClick={() => setFilter("all")}
+                className={`flex-1 sm:flex-none px-6 py-2.5 rounded-xl font-bold text-sm transition-all border ${filter === "all"
+                  ? "bg-secondary text-secondary-foreground border-transparent shadow-sm"
+                  : "bg-background/40 hover:bg-background/80 text-foreground border-border/60"
+                  }`}
               >
                 View All Dogs
               </button>
-              
-              <button 
-                onClick={() => setFilter("for_me")} 
-                className={`flex-1 sm:flex-none px-6 py-2.5 rounded-xl font-bold text-sm transition-all border flex items-center justify-center gap-2 ${
-                  filter === "for_me" 
-                    ? "bg-secondary text-secondary-foreground border-transparent shadow-sm" 
-                    : "bg-background/40 hover:bg-background/80 text-foreground border-border/60"
-                }`}
+
+              <button
+                onClick={() => setFilter("for_me")}
+                className={`flex-1 sm:flex-none px-6 py-2.5 rounded-xl font-bold text-sm transition-all border flex items-center justify-center gap-2 ${filter === "for_me"
+                  ? "bg-secondary text-secondary-foreground border-transparent shadow-sm"
+                  : "bg-background/40 hover:bg-background/80 text-foreground border-border/60"
+                  }`}
               >
                 For Me ✨
               </button>
             </div>
-            </motion.div>
+          </motion.div>
 
           {loading ? (
             <div className="flex flex-col items-center justify-center py-20">

@@ -177,7 +177,18 @@ export async function signupUser(userData) {
 
 // User
 export async function getUserProfile() {
-  return apiCall("/api/users/profile")
+  const userId = localStorage.getItem("userId");
+  return apiCall(`/api/users/profile?userId=${userId}`);
 }
+
+export const updateUserProfile = async (profile) => {
+  return apiCall("/api/users/profile", {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(profile),
+  });
+};
 
 export { API_ENDPOINTS }

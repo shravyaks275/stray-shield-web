@@ -192,3 +192,12 @@
   will-change: transform;
 }
 .floating-icon { opacity: 0.8; }
+
+/* hide scrollbar */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}

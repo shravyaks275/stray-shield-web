@@ -5,8 +5,9 @@ import 'swiper/css/pagination';
 import { Navigation, Pagination } from 'swiper/modules';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState, useEffect } from 'react';
-import { Activity, Syringe, Stethoscope, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Activity, Syringe, Stethoscope, CheckCircle2, AlertCircle, Mail, Phone, Globe, } from 'lucide-react';
 import { createPortal } from "react-dom";
+import { getNgoByName } from '@/config/ngoData';
 
 // Simple compatibility scoring function
 export function calculateMatch(dog, user) {
@@ -53,6 +54,13 @@ export function calculateMatch(dog, user) {
 
 export default function DogCard({ dog, user }) {
     const [isExpanded, setIsExpanded] = useState(false);
+    const [showAddRecord, setShowAddRecord] = useState(false);
+    const [newRecord, setNewRecord] = useState({
+        type: "Health Check",
+        notes: "",
+        by: "Veterinarian",
+        date: new Date().toISOString().split('T')[0]
+    });
     const imagesSource = Array.isArray(dog.images)
         ? dog.images
         : dog.image
@@ -127,13 +135,33 @@ export default function DogCard({ dog, user }) {
                 <p className="text-sm text-foreground/80 font-medium mb-3">
                     {dog.breed} <span className="mx-1 opacity-50">•</span> {dog.age} <span className="mx-1 opacity-50">•</span> {dog.sex}
                 </p>
+                <div className="flex flex-col gap-1">
+                    {/* NGO */}
+                    <div className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-secondary/40 backdrop-blur-sm rounded-lg border border-border/50 text-xs text-muted-foreground font-medium w-full">
+                        <svg className="w-4 h-4 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7h18M3 7l1.5 12h15L21 7M3 7l3-4h12l3 4" />
+                        </svg>
+                        <span className="truncate">{dog.ngo}</span>
+                    </div>
 
-                <div className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-secondary/40 backdrop-blur-sm rounded-lg border border-border/50 text-xs text-muted-foreground font-medium w-full">
-                    <svg className="w-4 h-4 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                    </svg>
-                    <span className="truncate">{dog.location}</span>
+                    {/* Location  */}
+                    <div className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-secondary/40 backdrop-blur-sm rounded-lg border border-border/50 text-xs text-muted-foreground font-medium w-full">
+                        <svg className="w-4 h-4 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                        <span className="truncate">{dog.location}</span>
+                    </div>
+
+                    {/* Contact */}
+                    <div className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-secondary/40 backdrop-blur-sm rounded-lg border border-border/50 text-xs text-muted-foreground font-medium w-full">
+                        <svg className="w-4 h-4 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a2 2 0 011.94 1.515l.7 2.8a2 2 0 01-.45 1.84l-1.27 1.27a16 16 0 006.586 6.586l1.27-1.27a2 2 0 011.84-.45l2.8.7A2 2 0 0119 15.72V19a2 2 0 01-2 2h-1C8.82 21 3 15.18 3 8V5z" />
+                        </svg>
+                        <a href={`tel:${dog.contact}`} className="truncate hover:text-primary">
+                            {dog.contact}
+                        </a>
+                    </div>
                 </div>
             </div>
 
@@ -208,6 +236,46 @@ export default function DogCard({ dog, user }) {
 
                                 {/* Content */}
                                 <div className="p-6 overflow-y-auto custom-scrollbar">
+                                    {/* NGO Contact Card */}
+                                    {(() => {
+                                        const ngo = getNgoByName(dog.ngo);
+                                        return ngo ? (
+                                            <div className="mb-6 bg-gradient-to-br from-primary/10 to-secondary/5 border border-primary/20 rounded-2xl p-5 shadow-md">
+                                                <h4 className="text-sm font-bold text-foreground mb-3 flex items-center gap-2">
+                                                    <span className="w-2 h-2 bg-primary rounded-full"></span>
+                                                    Managed by: {ngo.name}
+                                                </h4>
+                                                <div className="space-y-2.5 text-sm">
+                                                    {ngo.email && (
+                                                        <div className="flex items-center gap-2.5 text-foreground/90">
+                                                            <Mail className="w-4 h-4 text-primary flex-shrink-0" />
+                                                            <a href={`mailto:${ngo.email}`} className="hover:text-primary transition-colors underline">
+                                                                {ngo.email}
+                                                            </a>
+                                                        </div>
+                                                    )}
+                                                    {ngo.phone && (
+                                                        <div className="flex items-center gap-2.5 text-foreground/90">
+                                                            <Phone className="w-4 h-4 text-primary flex-shrink-0" />
+                                                            <a href={`tel:${ngo.phone}`} className="hover:text-primary transition-colors font-mono">
+                                                                {ngo.phone}
+                                                            </a>
+                                                        </div>
+                                                    )}
+                                                    {ngo.website && (
+                                                        <div className="flex items-center gap-2.5 text-foreground/90">
+                                                            <Globe className="w-4 h-4 text-primary flex-shrink-0" />
+                                                            <a href={`https://${ngo.website}`} target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors underline">
+                                                                {ngo.website}
+                                                            </a>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                <p className="text-xs text-muted-foreground mt-3 italic">"{ngo.bio}"</p>
+                                            </div>
+                                        ) : null;
+                                    })()}
+
                                     {dog.healthRecords && dog.healthRecords.length > 0 ? (
                                         <div className="space-y-4">
                                             {dog.healthRecords.map((record, i) => (
@@ -239,6 +307,77 @@ export default function DogCard({ dog, user }) {
                                         </div>
                                     )}
 
+                                    <AnimatePresence>
+                                        {showAddRecord && (
+                                            <motion.div
+                                                initial={{ opacity: 0, height: 0 }}
+                                                animate={{ opacity: 1, height: "auto" }}
+                                                exit={{ opacity: 0, height: 0 }}
+                                                className="mt-4 p-4 bg-secondary/20 border border-secondary/50 rounded-2xl space-y-3 overflow-hidden"
+                                            >
+                                                <div>
+                                                    <label className="text-xs font-bold text-muted-foreground uppercase mb-1 block">Record Type</label>
+                                                    <select
+                                                        value={newRecord.type}
+                                                        onChange={(e) => setNewRecord({ ...newRecord, type: e.target.value })}
+                                                        className="w-full bg-background/50 border border-white/10 rounded-lg px-3 py-2 text-xs font-medium text-foreground focus:ring-2 focus:ring-primary focus:outline-none"
+                                                    >
+                                                        <option>Vaccination</option>
+                                                        <option>Health Check</option>
+                                                        <option>Treatment</option>
+                                                        <option>Sterilization</option>
+                                                    </select>
+                                                </div>
+                                                <div>
+                                                    <label className="text-xs font-bold text-muted-foreground uppercase mb-1 block">Notes</label>
+                                                    <textarea
+                                                        value={newRecord.notes}
+                                                        onChange={(e) => setNewRecord({ ...newRecord, notes: e.target.value })}
+                                                        className="w-full bg-background/50 border border-white/10 rounded-lg px-3 py-2 text-xs font-medium text-foreground focus:ring-2 focus:ring-primary focus:outline-none resize-none h-16"
+                                                        placeholder="Enter treatment details..."
+                                                    ></textarea>
+                                                </div>
+                                                <div className="flex gap-2">
+                                                    <input
+                                                        type="date"
+                                                        value={newRecord.date}
+                                                        onChange={(e) => setNewRecord({ ...newRecord, date: e.target.value })}
+                                                        className="flex-1 bg-background/50 border border-white/10 rounded-lg px-3 py-2 text-xs font-medium text-foreground focus:ring-2 focus:ring-primary focus:outline-none"
+                                                    />
+                                                    <input
+                                                        type="text"
+                                                        value={newRecord.by}
+                                                        onChange={(e) => setNewRecord({ ...newRecord, by: e.target.value })}
+                                                        placeholder="By"
+                                                        className="flex-1 bg-background/50 border border-white/10 rounded-lg px-3 py-2 text-xs font-medium text-foreground focus:ring-2 focus:ring-primary focus:outline-none"
+                                                    />
+                                                </div>
+                                                <div className="flex gap-2">
+                                                    <motion.button
+                                                        whileHover={{ scale: 1.05 }}
+                                                        onClick={() => {
+                                                            if (dog.healthRecords) {
+                                                                dog.healthRecords.push({ ...newRecord, id: Date.now(), status: "completed" });
+                                                            }
+                                                            setShowAddRecord(false);
+                                                            setNewRecord({ type: "Health Check", notes: "", by: "Veterinarian", date: new Date().toISOString().split('T')[0] });
+                                                        }}
+                                                        className="flex-1 py-2 px-3 bg-primary text-primary-foreground font-bold text-xs rounded-lg hover:shadow-md transition-all"
+                                                    >
+                                                        Save Record
+                                                    </motion.button>
+                                                    <motion.button
+                                                        whileHover={{ scale: 1.05 }}
+                                                        onClick={() => setShowAddRecord(false)}
+                                                        className="flex-1 py-2 px-3 bg-muted text-foreground font-bold text-xs rounded-lg hover:bg-muted/80 transition-all"
+                                                    >
+                                                        Cancel
+                                                    </motion.button>
+                                                </div>
+                                            </motion.div>
+                                        )}
+                                    </AnimatePresence>
+
                                     {/* Personality Section */}
                                     <div className="mt-6 border-t border-border/30 pt-6 bg-secondary/5 rounded-xl">
                                         <h4 className="text-lg font-bold text-foreground mb-3">Personality Traits</h4>
@@ -264,12 +403,27 @@ export default function DogCard({ dog, user }) {
 
                                     {/* AI Health Check Badge */}
                                     {dog.aiHealthCheck && (
-                                        <div className="mt-6 border-t border-border/30 pt-6 flex items-center justify-between bg-secondary/10 rounded-xl p-4">
-                                            <div className="text-sm font-bold text-foreground">
-                                                AI Health Check: {dog.aiHealthCheck.label}
+                                        <div className="mt-6 border-t border-border/30 pt-6 bg-secondary/10 rounded-xl p-4 flex flex-col gap-3">
+                                            <div className="flex items-center justify-between text-sm font-bold text-foreground">
+                                                <span className="flex items-center gap-1.5">🤖 AI Health Check</span>
+                                                <span className="px-3 py-1 bg-background/50 rounded-full border border-border/50 shadow-sm text-primary">{dog.aiHealthCheck.label}</span>
                                             </div>
-                                            <div className="text-xs font-semibold text-primary bg-primary/10 border border-primary/20 px-3 py-1 rounded-full">
-                                                Confidence: {dog.aiHealthCheck.confidence}
+                                            <div className="flex flex-col gap-1.5">
+                                                <div className="flex justify-between text-xs font-semibold text-muted-foreground">
+                                                    <span>Analysis Confidence</span>
+                                                    <span>{dog.aiHealthCheck.confidence}</span>
+                                                </div>
+                                                <div className="h-2 w-full bg-background/50 rounded-full overflow-hidden border border-border/50">
+                                                    <motion.div
+                                                        initial={{ width: 0 }}
+                                                        animate={{ width: dog.aiHealthCheck.confidence }}
+                                                        transition={{ duration: 1, ease: "easeOut" }}
+                                                        className="h-full rounded-full"
+                                                        style={{
+                                                            backgroundColor: parseInt(dog.aiHealthCheck.confidence) > 85 ? '#22c55e' : parseInt(dog.aiHealthCheck.confidence) > 60 ? '#eab308' : '#ef4444'
+                                                        }}
+                                                    />
+                                                </div>
                                             </div>
                                         </div>
                                     )}

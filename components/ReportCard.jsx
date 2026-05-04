@@ -1,8 +1,9 @@
 "use client"
 
 import { useState } from "react"
-import { MapPin, Phone, Mail, User, Calendar, Activity } from 'lucide-react'
+import { MapPin, Phone, Mail, User, Calendar, Activity, BrainCircuit, Globe } from 'lucide-react'
 import { motion } from "framer-motion"
+import { getNgoByName } from '@/config/ngoData'
 
 export default function ReportCard({ report, onUpdateStatus, isCitizen = false }) {
   const [updating, setUpdating] = useState(false)
@@ -24,8 +25,46 @@ export default function ReportCard({ report, onUpdateStatus, isCitizen = false }
 
   const statusOptions = ["pending", "in_progress", "resolved"]
 
+  const getAiHealthDetails = (statusString) => {
+    let label = statusString || "";
+    let confidence = 0;
+
+    if (label.includes('|')) {
+      const parts = label.split('|');
+      label = parts[0];
+      confidence = parseInt(parts[1], 10);
+    }
+
+    const status = label.toLowerCase();
+
+    let details = { score: confidence, color: "bg-indigo-500", text: "text-indigo-700 dark:text-indigo-400", bg: "bg-indigo-500/10", border: "border-indigo-500/20", label: label || "Assessment Unavailable" };
+
+    if (status.includes("healthy") || status.includes("excellent")) {
+      details = { ...details, color: "bg-emerald-500", text: "text-emerald-700 dark:text-emerald-400", bg: "bg-emerald-500/10", border: "border-emerald-500/20" };
+    }
+    else if (status.includes("injured") || status.includes("fracture") || status.includes("wound") || status.includes("bleeding") || status.includes("trauma")) {
+      details = { ...details, color: "bg-rose-600", text: "text-rose-700 dark:text-rose-400", bg: "bg-rose-600/10", border: "border-rose-600/20", label: "🚨 " + label };
+    }
+    else if (status.includes("minor") || status.includes("skin") || status.includes("dental") || status.includes("healing") || status.includes("possible")) {
+      details = { ...details, color: "bg-amber-500", text: "text-amber-700 dark:text-amber-400", bg: "bg-amber-500/10", border: "border-amber-500/20" };
+    }
+    else if (status.includes("severe") || status.includes("priority") || status.includes("urgent") || status.includes("malnourished") || status.includes("critical")) {
+      details = { ...details, color: "bg-red-500", text: "text-red-700 dark:text-red-400", bg: "bg-red-500/10", border: "border-red-500/20" };
+    }
+    else if (status.includes("pending") || status === "") {
+      return { score: 0, color: "bg-slate-400", text: "text-slate-600 dark:text-slate-400", bg: "bg-slate-500/10", border: "border-slate-500/20", label: "AI Analysis Pending" };
+    }
+
+    // If no confidence provided by backend (e.g. old reports), assign a default
+    if (!details.score) details.score = 85;
+
+    return details;
+  }
+
+  const aiDetails = getAiHealthDetails(report.aiStatus || report.aiStatuses?.[0])
+
   return (
-    <motion.div 
+    <motion.div
       whileHover={{ y: -4, scale: 1.01 }}
       transition={{ type: "spring", stiffness: 300, damping: 20 }}
       className="glass-panel rounded-[1.5rem] border border-white/20 p-6 space-y-5 shadow-lg group relative overflow-hidden"
@@ -35,9 +74,8 @@ export default function ReportCard({ report, onUpdateStatus, isCitizen = false }
       {/* Header and Status */}
       <div className="flex justify-between items-start">
         <div
-          className={`inline-flex px-3 py-1.5 rounded-full border text-xs font-bold capitalize tracking-wide shadow-sm ${
-            statusColors[report.status] || statusColors.pending
-          }`}
+          className={`inline-flex px-3 py-1.5 rounded-full border text-xs font-bold capitalize tracking-wide shadow-sm ${statusColors[report.status] || statusColors.pending
+            }`}
         >
           {report.status.replace("_", " ")}
         </div>
@@ -67,13 +105,44 @@ export default function ReportCard({ report, onUpdateStatus, isCitizen = false }
         </div>
         <div>
           <p className="font-bold text-foreground text-lg tracking-tight leading-tight">{report.location}</p>
-          {report.latitude && report.longitude && (
+          {report.latitude && report.longitude && !isNaN(Number(report.latitude)) && !isNaN(Number(report.longitude)) && (
             <p className="text-xs font-mono text-muted-foreground mt-1">
-              LAT: {report.latitude.toFixed(4)}, LNG: {report.longitude.toFixed(4)}
+              LAT: {Number(report.latitude).toFixed(4)}, LNG: {Number(report.longitude).toFixed(4)}
             </p>
           )}
         </div>
       </div>
+
+      {/* Reporting Contact Info */}
+      {(report.contactName || report.contactPhone || report.contactEmail) && (
+        <div className="bg-secondary/5 backdrop-blur-md p-4 rounded-2xl border border-white/10 space-y-2">
+          <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Reporter Contact</p>
+          <div className="space-y-1.5">
+            {report.contactName && (
+              <div className="flex items-center gap-2 text-sm text-foreground">
+                <User className="w-4 h-4 text-primary flex-shrink-0" />
+                <span className="font-medium">{report.contactName}</span>
+              </div>
+            )}
+            {report.contactPhone && (
+              <div className="flex items-center gap-2 text-sm">
+                <Phone className="w-4 h-4 text-primary flex-shrink-0" />
+                <a href={`tel:${report.contactPhone}`} className="hover:text-primary transition-colors font-mono">
+                  {report.contactPhone}
+                </a>
+              </div>
+            )}
+            {report.contactEmail && (
+              <div className="flex items-center gap-2 text-sm">
+                <Mail className="w-4 h-4 text-primary flex-shrink-0" />
+                <a href={`mailto:${report.contactEmail}`} className="hover:text-primary transition-colors break-all">
+                  {report.contactEmail}
+                </a>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Description */}
       <div className="bg-background/40 backdrop-blur-md p-4 rounded-2xl border border-white/10 shadow-[inset_0_2px_10px_rgba(0,0,0,0.02)]">
@@ -82,11 +151,47 @@ export default function ReportCard({ report, onUpdateStatus, isCitizen = false }
 
       {/* AI Health Status */}
       {(report.aiStatus || (report.aiStatuses && report.aiStatuses.length > 0)) && (
-        <div className="flex items-center gap-3 p-3.5 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 backdrop-blur-sm">
-          <Activity className="w-5 h-5 text-indigo-500" />
-          <span className="text-sm font-bold text-indigo-700 dark:text-indigo-400">
-            AI Assessment: {report.aiStatus || report.aiStatuses?.[0] || "Pending Review"}
-          </span>
+        <div className={`p-4 rounded-2xl ${aiDetails.bg} border ${aiDetails.border} backdrop-blur-sm space-y-3`}>
+          <div className="flex justify-between items-center">
+            <div className="flex items-center gap-2">
+              <BrainCircuit className={`w-5 h-5 ${aiDetails.text}`} />
+              <span className={`text-sm font-bold ${aiDetails.text}`}>AI Health Assessment</span>
+            </div>
+            {aiDetails.score > 0 && (
+              <div className={`flex flex-col items-end`}>
+                <span className={`text-xs font-black ${aiDetails.text} bg-white/20 px-2 py-0.5 rounded-t-md`}>
+                  CONFIDENCE
+                </span>
+                <span className={`text-lg leading-none font-black ${aiDetails.text} bg-white/20 px-2 py-1 rounded-b-md rounded-tl-md`}>
+                  {aiDetails.score}%
+                </span>
+              </div>
+            )}
+          </div>
+
+          <div className="space-y-1.5">
+            <div className="flex justify-between items-center">
+              <span className={`text-sm font-medium ${aiDetails.text} opacity-90`}>{aiDetails.label}</span>
+            </div>
+            {aiDetails.score > 0 ? (
+              <div className="h-2.5 w-full bg-black/10 dark:bg-white/10 rounded-full overflow-hidden">
+                <motion.div
+                  initial={{ width: 0 }}
+                  animate={{ width: `${aiDetails.score}%` }}
+                  transition={{ duration: 1, ease: "easeOut" }}
+                  className={`h-full ${aiDetails.color} rounded-full`}
+                />
+              </div>
+            ) : (
+              <div className="h-2.5 w-full bg-black/10 dark:bg-white/10 rounded-full overflow-hidden relative">
+                <motion.div
+                  animate={{ x: ["-100%", "200%"] }}
+                  transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
+                  className="h-full w-1/2 bg-slate-400/50 rounded-full absolute"
+                />
+              </div>
+            )}
+          </div>
         </div>
       )}
 
@@ -136,11 +241,10 @@ export default function ReportCard({ report, onUpdateStatus, isCitizen = false }
               key={status}
               onClick={() => handleStatusChange(status)}
               disabled={updating || report.status === status}
-              className={`flex-1 py-2.5 px-2 rounded-xl text-xs font-bold transition-all capitalize shadow-sm disabled:opacity-50 disabled:pointer-events-none ${
-                report.status === status
-                  ? "bg-foreground text-background shadow-md border-transparent"
-                  : "bg-background/60 backdrop-blur-sm text-foreground border border-border/60 hover:border-primary/50 hover:bg-primary/5"
-              }`}
+              className={`flex-1 py-2.5 px-2 rounded-xl text-xs font-bold transition-all capitalize shadow-sm disabled:opacity-50 disabled:pointer-events-none ${report.status === status
+                ? "bg-foreground text-background shadow-md border-transparent"
+                : "bg-background/60 backdrop-blur-sm text-foreground border border-border/60 hover:border-primary/50 hover:bg-primary/5"
+                }`}
             >
               {status.replace("_", " ")}
             </motion.button>
