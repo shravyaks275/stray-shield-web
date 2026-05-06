@@ -1,5 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  serverExternalPackages: ['@tensorflow/tfjs-node', '@mapbox/node-pre-gyp', 'mock-aws-s3', 'aws-sdk', 'nock'],
   typescript: {
     ignoreBuildErrors: true,
   },

@@ -12,7 +12,7 @@ function LocationDropdown({ locations, value, onChange }) {
   const [isOpen, setIsOpen] = useState(false);
   const [inputValue, setInputValue] = useState(value === "All" ? "" : value);
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
-  
+
   useEffect(() => {
     setInputValue(value === "All" ? "" : value);
   }, [value]);
@@ -61,7 +61,7 @@ function LocationDropdown({ locations, value, onChange }) {
         />
         <div className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-muted-foreground">
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
           </svg>
         </div>
       </div>
@@ -253,10 +253,10 @@ export default function CitizenDashboard() {
 
               <div className="w-40">
                 <label className="text-xs font-bold text-muted-foreground uppercase px-2 mb-1 block">Location</label>
-                <LocationDropdown 
-                  locations={locations} 
-                  value={selectedLocation} 
-                  onChange={setSelectedLocation} 
+                <LocationDropdown
+                  locations={locations}
+                  value={selectedLocation}
+                  onChange={setSelectedLocation}
                 />
               </div>
               <div className="w-40">
@@ -398,7 +398,7 @@ export default function CitizenDashboard() {
                     <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold shadow-[0_0_15px_-3px_rgba(var(--primary),0.4)]">
                       {ngoName.charAt(0)}
                     </div>
-                    <h2 className="text-2xl font-black text-foreground tracking-tight">{ngoName}</h2>
+                    <h2 className="text-2xl font-black text-foreground tracking-tight">{ngoName}. {ngo}</h2>
                     <span className="ml-auto text-sm font-bold text-muted-foreground bg-secondary/30 px-3 py-1 rounded-full border border-white/5">
                       {ngoDogs.length} {ngoDogs.length === 1 ? 'Dog' : 'Dogs'}
                     </span>
