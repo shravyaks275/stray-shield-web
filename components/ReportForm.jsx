@@ -348,7 +348,7 @@ export default function ReportForm() {
     }
   }
 
-  const inputClasses = "w-full px-4 py-3.5 rounded-xl border border-border/50 bg-background/50 backdrop-blur-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all font-medium"
+  const inputClasses = "w-full px-4 py-3.5 rounded-xl border border-border/50 bg-background/50 backdrop-blur-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-transparent transition-all font-medium"
   const labelClasses = "text-sm font-bold text-foreground block mb-2"
 
   return (
