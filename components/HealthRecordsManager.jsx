@@ -13,14 +13,14 @@ export default function HealthRecordsManager() {
 
   const [dogs, setDogs] = useState(() => {
     if (typeof window !== "undefined") {
-      const saved = localStorage.getItem("straydogs_data_v3");
+      const saved = localStorage.getItem("straydogs_data_v5");
       if (saved) return JSON.parse(saved);
     }
     return initialDogs;
   });
 
   useEffect(() => {
-    localStorage.setItem("straydogs_data_v3", JSON.stringify(dogs));
+    localStorage.setItem("straydogs_data_v5", JSON.stringify(dogs));
   }, [dogs]);
 
   const [selectedDogId, setSelectedDogId] = useState(dogs[0]?.id || null);

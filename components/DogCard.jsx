@@ -320,7 +320,7 @@ export default function DogCard({ dog, user }) {
                                                     <select
                                                         value={newRecord.type}
                                                         onChange={(e) => setNewRecord({ ...newRecord, type: e.target.value })}
-                                                        className="w-full bg-background/50 border border-white/10 rounded-lg px-3 py-2 text-xs font-medium text-foreground focus:ring-2 focus:ring-primary focus:outline-none"
+                                                        className="w-full bg-background/50 border border-white/10 rounded-lg px-3 py-2 text-xs font-medium text-foreground focus:ring-2 focus:ring-primary focus:border-transparent focus:outline-none"
                                                     >
                                                         <option>Vaccination</option>
                                                         <option>Health Check</option>

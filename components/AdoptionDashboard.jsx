@@ -19,7 +19,7 @@ export default function AdoptionBoard() {
             // Load unified mock data
             let mockDogs = [];
             if (typeof window !== "undefined") {
-                const saved = localStorage.getItem("straydogs_data_v3");
+                const saved = localStorage.getItem("straydogs_data_v4");
                 if (saved) {
                     try {
                         mockDogs = JSON.parse(saved);
@@ -49,7 +49,7 @@ export default function AdoptionBoard() {
 
             const mergedDogs = Array.from(dogMap.values())
             if (typeof window !== "undefined") {
-                localStorage.setItem("straydogs_data_v3", JSON.stringify(mergedDogs))
+                localStorage.setItem("straydogs_data_v5", JSON.stringify(mergedDogs))
             }
             setDogs(mergedDogs);
         } catch (err) {
@@ -72,7 +72,7 @@ export default function AdoptionBoard() {
                 );
                 // Also update localStorage
                 const mappedBack = updated.map(d => ({ ...d, id: d.dogId }));
-                localStorage.setItem("straydogs_data_v3", JSON.stringify(mappedBack));
+                localStorage.setItem("straydogs_data_v5", JSON.stringify(mappedBack));
                 return updated;
             });
         } catch (err) {
@@ -207,19 +207,18 @@ export default function AdoptionBoard() {
                 </motion.div>
             ) : (
                 <motion.div
-  variants={containerVariants}
-  initial="hidden"
-  animate="visible"
-  className="flex gap-6 overflow-x-auto pb-4 scroll-smooth snap-x snap-mandatory scrollbar-hide
-  "
->
-  {filteredDogs.map((dog) => (
-    <motion.div
-      key={dog.dogId}
-      variants={itemVariants}
-      whileHover={{ y: -5 }}
-      className="min-w-[300px] max-w-[320px] bg-card glass rounded-[1.5rem] border border-border/50 shadow-lg overflow-hidden flex flex-col transition-all"
-    >
+                    variants={containerVariants}
+                    initial="hidden"
+                    animate="visible"
+                    className="flex gap-6 overflow-x-auto pb-4 scroll-smooth snap-x snap-mandatory scrollbar-hide"
+                >
+                    {filteredDogs.map((dog) => (
+                        <motion.div
+                            key={dog.dogId}
+                            variants={itemVariants}
+                            whileHover={{ y: -5 }}
+                            className="min-w-[300px] max-w-[320px] bg-card glass rounded-[1.5rem] border border-border/50 shadow-lg overflow-hidden flex flex-col transition-all"
+                        >
                             {/* Accent Gradient Line at Top */}
                             <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-primary via-indigo-500 to-transparent opacity-50 group-hover:opacity-100 transition-opacity" />
 

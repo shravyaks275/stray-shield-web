@@ -107,7 +107,7 @@ export default function Login() {
                   onChange={handleChange}
                   placeholder="name@example.com"
                   required
-                  className="w-full px-4 py-3.5 rounded-xl border border-border/50 bg-background/80 text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all font-medium"
+                  className="w-full px-4 py-3.5 rounded-xl border border-border/50 bg-background/80 text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-transparent transition-all font-medium"
                 />
               </div>
 
@@ -121,7 +121,7 @@ export default function Login() {
                     onChange={handleChange}
                     placeholder="••••••••"
                     required
-                    className="w-full px-4 py-3.5 rounded-xl border border-border/50 bg-background/80 text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all font-medium"
+                    className="w-full px-4 py-3.5 rounded-xl border border-border/50 bg-background/80 text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-transparent transition-all font-medium"
                   />
                   <button
                     type="button"
