@@ -398,7 +398,7 @@ export default function CitizenDashboard() {
                     <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold shadow-[0_0_15px_-3px_rgba(var(--primary),0.4)]">
                       {ngoName.charAt(0)}
                     </div>
-                    <h2 className="text-2xl font-black text-foreground tracking-tight">{ngoName}. {ngo}</h2>
+                    <h2 className="text-2xl font-black text-foreground tracking-tight">{ngoName} - {ngoDogs[0]?.location || 'Bangalore'}</h2>
                     <span className="ml-auto text-sm font-bold text-muted-foreground bg-secondary/30 px-3 py-1 rounded-full border border-white/5">
                       {ngoDogs.length} {ngoDogs.length === 1 ? 'Dog' : 'Dogs'}
                     </span>

@@ -265,38 +265,21 @@ export default function ReportForm() {
         const promises = imagePreviews.map(async (preview) => {
           try {
             const base64Image = preview.split(",")[1]
-            const compressedImage = await compressImage(preview)
+            const compressedBase64 = await compressImage(preview)
             
-            // Instant client-side mock utilizing heuristics for accurate demonstration
-            const desc = formData.description.toLowerCase();
-            let label = "Healthy - No Visible Injuries";
-            let conf = Math.floor(Math.random() * 10) + 90;
-
-            if (desc.includes("severe") || desc.includes("blood") || desc.includes("injur") || desc.includes("hurt") || desc.includes("accident") || desc.includes("hit") || desc.includes("wound") || desc.includes("head") || desc.includes("cut")) {
-              label = "Severe Injury - High Priority";
-              conf = Math.floor(Math.random() * 5) + 90; // high confidence for severe keywords
-            } else if (desc.includes("skin") || desc.includes("hair") || desc.includes("scratch") || desc.includes("rash")) {
-              label = "Possible Skin Infection";
-              conf = Math.floor(Math.random() * 15) + 70;
-            } else if (desc.includes("thin") || desc.includes("starv") || desc.includes("malnourish") || desc.includes("weak")) {
-              label = "Malnourished Profile";
-              conf = Math.floor(Math.random() * 15) + 80;
-            } else if (desc.includes("limp") || desc.includes("minor")) {
-              label = "Minor Injury Detected";
-              conf = Math.floor(Math.random() * 15) + 75;
-            } else {
-              // Deterministic fallback based on image properties to avoid erratic random toggling
-              const conditions = [
-                { label: "Healthy - No Visible Injuries", confidence: Math.floor(Math.random() * 10) + 85 },
-                { label: "Severe Injury - High Priority", confidence: Math.floor(Math.random() * 10) + 85 },
-                { label: "Possible Skin Infection", confidence: Math.floor(Math.random() * 15) + 75 },
-              ];
-              const idx = base64Image.length % conditions.length;
-              label = conditions[idx].label;
-              conf = conditions[idx].confidence;
-            }
+            const compressedImage = compressedBase64.split(",")[1]
             
-            return `${label}|${conf}`;
+            // Call external Render backend for classification
+            const res = await fetch("https://stray-shield.onrender.com/classify", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ imageBuffer: compressedBase64 })
+            })
+            
+            if (!res.ok) throw new Error("Backend classification failed")
+            const data = await res.json()
+            
+            return `${data.label}|${Math.round((data.confidence || 0) * 100)}`
           } catch (classifyErr) {
             console.warn("Image classification failed, using fallback:", classifyErr)
             return "Pending Review|0"

@@ -404,7 +404,7 @@ Match Score =
 
 **Features:**
 - Loop through all uploaded images
-- Send each to `/api/classify` endpoint
+- Send each securely to the dedicated `https://stray-shield.onrender.com/classify` backend endpoint
 - Attach AI results array to report
 - Display classification results
 - Handle errors gracefully
@@ -577,7 +577,7 @@ dataset/
 | **TensorFlow.js** | 4.x | ML framework |
 | **MobileNet** | - | Image classification |
 | **KNN** | - | Classification algorithm |
-| **Node.js** | 18+ | Model execution |
+| **Node.js** | 18+ | Model execution on Express Backend (removed from Next.js) |
 
 **Model Size**: Efficient for browser  
 **Inference Time**: <1 second per image
