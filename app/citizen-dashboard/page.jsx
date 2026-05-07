@@ -1,4 +1,79 @@
+
 "use client";
+
+// Reusable dropdown for Find Your Match section
+function CustomDropdown({ options, value, onChange, placeholder = "Select..." }) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [highlightedIndex, setHighlightedIndex] = useState(-1);
+  useEffect(() => {
+    setHighlightedIndex(-1);
+  }, [isOpen]);
+  // Show the selected value in the input, but don't allow typing to change it
+  return (
+    <div className="relative w-full">
+      <div className="relative">
+        <input
+          type="text"
+          placeholder={placeholder}
+          value={value || ""}
+          readOnly
+          onClick={() => setIsOpen(true)}
+          onFocus={() => setIsOpen(true)}
+          onBlur={() => setTimeout(() => setIsOpen(false), 200)}
+          onKeyDown={(e) => {
+            if (e.key === 'ArrowDown') {
+              e.preventDefault();
+              setIsOpen(true);
+              setHighlightedIndex(prev => prev < options.length - 1 ? prev + 1 : prev);
+            } else if (e.key === 'ArrowUp') {
+              e.preventDefault();
+              if (isOpen) setHighlightedIndex(prev => prev > 0 ? prev - 1 : -1);
+            } else if (e.key === 'Enter' && isOpen && highlightedIndex >= 0) {
+              e.preventDefault();
+              const opt = options[highlightedIndex];
+              if (opt) {
+                onChange(opt);
+                setIsOpen(false);
+              }
+            } else if (e.key === 'Escape') {
+              setIsOpen(false);
+            }
+          }}
+          className="w-full bg-background/50 border border-border/50 rounded-xl px-2 py-2 text-sm font-medium text-foreground focus:ring-2 focus:ring-primary focus:border-transparent focus:outline-none transition-shadow cursor-pointer"
+        />
+        <div className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-muted-foreground">
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          </svg>
+        </div>
+      </div>
+      <AnimatePresence>
+        {isOpen && (
+          <motion.ul
+            initial={{ opacity: 0, y: -5 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -5 }}
+            className="absolute z-50 w-full mt-1 bg-background border border-border/50 rounded-xl shadow-xl max-h-60 overflow-auto scrollbar-hide"
+          >
+            {options.map((opt, index) => (
+              <li
+                key={opt}
+                onClick={() => {
+                  onChange(opt);
+                  setIsOpen(false);
+                }}
+                className={`px-4 py-2 cursor-pointer text-sm transition-colors ${highlightedIndex === index ? "bg-secondary/80 text-foreground" : "text-foreground hover:bg-secondary/50"}`}
+                onMouseEnter={() => setHighlightedIndex(index)}
+              >
+                {opt}
+              </li>
+            ))}
+          </motion.ul>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
 
 import { useState, useEffect, useMemo } from "react";
 import Navbar from "@/components/Navbar";
@@ -12,17 +87,13 @@ function LocationDropdown({ locations, value, onChange }) {
   const [isOpen, setIsOpen] = useState(false);
   const [inputValue, setInputValue] = useState(value === "All" ? "" : value);
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
-  
   useEffect(() => {
     setInputValue(value === "All" ? "" : value);
   }, [value]);
-
   const filteredLocations = locations.filter(loc => loc !== "All" && loc.toLowerCase().includes(inputValue.toLowerCase()));
-
   useEffect(() => {
     setHighlightedIndex(-1);
   }, [inputValue, isOpen]);
-
   return (
     <div className="relative w-full">
       <div className="relative">
@@ -61,7 +132,7 @@ function LocationDropdown({ locations, value, onChange }) {
         />
         <div className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-muted-foreground">
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
           </svg>
         </div>
       </div>
@@ -88,6 +159,90 @@ function LocationDropdown({ locations, value, onChange }) {
             ))}
             {filteredLocations.length === 0 && (
               <li className="px-4 py-3 text-sm text-muted-foreground text-center">No localities found</li>
+            )}
+          </motion.ul>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+function NgoDropdown({ ngos, value, onChange }) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [inputValue, setInputValue] = useState(value === "All" ? "" : value);
+  const [highlightedIndex, setHighlightedIndex] = useState(-1);
+  useEffect(() => {
+    setInputValue(value === "All" ? "" : value);
+  }, [value]);
+  const filteredNgos = ngos.filter(ngo => ngo !== "All" && ngo.toLowerCase().includes(inputValue.toLowerCase()));
+  useEffect(() => {
+    setHighlightedIndex(-1);
+  }, [inputValue, isOpen]);
+  return (
+    <div className="relative w-full">
+      <div className="relative">
+        <input
+          type="text"
+          placeholder="Search NGO..."
+          value={inputValue}
+          onChange={(e) => {
+            setInputValue(e.target.value);
+            onChange(e.target.value || "All");
+            setIsOpen(true);
+          }}
+          onFocus={() => setIsOpen(true)}
+          onBlur={() => setTimeout(() => setIsOpen(false), 200)}
+          onKeyDown={(e) => {
+            if (e.key === 'ArrowDown') {
+              e.preventDefault();
+              setIsOpen(true);
+              setHighlightedIndex(prev => prev < filteredNgos.length - 1 ? prev + 1 : prev);
+            } else if (e.key === 'ArrowUp') {
+              e.preventDefault();
+              if (isOpen) setHighlightedIndex(prev => prev > 0 ? prev - 1 : -1);
+            } else if (e.key === 'Enter' && isOpen && highlightedIndex >= 0) {
+              e.preventDefault();
+              const ngo = filteredNgos[highlightedIndex];
+              if (ngo) {
+                setInputValue(ngo);
+                onChange(ngo);
+                setIsOpen(false);
+              }
+            } else if (e.key === 'Escape') {
+              setIsOpen(false);
+            }
+          }}
+          className="w-full bg-background/50 border border-border/50 rounded-xl px-2 py-2 text-sm font-medium text-foreground focus:ring-2 focus:ring-primary focus:border-transparent focus:outline-none transition-shadow"
+        />
+        <div className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-muted-foreground">
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          </svg>
+        </div>
+      </div>
+      <AnimatePresence>
+        {isOpen && (
+          <motion.ul
+            initial={{ opacity: 0, y: -5 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -5 }}
+            className="absolute z-50 w-full mt-1 bg-background border border-border/50 rounded-xl shadow-xl max-h-60 overflow-auto scrollbar-hide"
+          >
+            {filteredNgos.map((ngo, index) => (
+              <li
+                key={ngo}
+                onClick={() => {
+                  setInputValue(ngo);
+                  onChange(ngo);
+                  setIsOpen(false);
+                }}
+                className={`px-4 py-2 cursor-pointer text-sm transition-colors ${highlightedIndex === index ? "bg-secondary/80 text-foreground" : "text-foreground hover:bg-secondary/50"}`}
+              >
+                {ngo}
+              </li>
+            ))}
+            {filteredNgos.length === 0 && (
+              <li className="px-4 py-3 text-sm text-muted-foreground text-center">No NGOs found</li>
             )}
           </motion.ul>
         )}
@@ -253,23 +408,19 @@ export default function CitizenDashboard() {
 
               <div className="w-40">
                 <label className="text-xs font-bold text-muted-foreground uppercase px-2 mb-1 block">Location</label>
-                <LocationDropdown 
-                  locations={locations} 
-                  value={selectedLocation} 
-                  onChange={setSelectedLocation} 
+                <LocationDropdown
+                  locations={locations}
+                  value={selectedLocation}
+                  onChange={setSelectedLocation}
                 />
               </div>
               <div className="w-40">
                 <label className="text-xs font-bold text-muted-foreground uppercase px-2 mb-1 block">NGO</label>
-                <select
+                <NgoDropdown
+                  ngos={ngos}
                   value={selectedNgo}
-                  onChange={(e) => setSelectedNgo(e.target.value)}
-                  className="w-full bg-background/50 border border-border/50 rounded-xl px-2 pr-8 py-2 text-sm font-medium text-foreground focus:ring-2 focus:ring-primary focus:border-transparent focus:outline-none transition-shadow"
-                >
-                  {ngos.map(ngo => (
-                    <option key={ngo} value={ngo}>{ngo}</option>
-                  ))}
-                </select>
+                  onChange={setSelectedNgo}
+                />
               </div>
             </div>
           </div>
@@ -289,51 +440,57 @@ export default function CitizenDashboard() {
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 flex-grow w-full">
                 <div>
                   <label className="text-xs font-bold text-muted-foreground uppercase px-2 mb-2 block">Lifestyle</label>
-                  <select
-                    value={userPreferences.lifestyle}
-                    onChange={(e) => setUserPreferences({ ...userPreferences, lifestyle: e.target.value })}
-                    className="w-full bg-background/50 border border-border/50 rounded-xl px-2 pr-8 py-2.5 text-sm font-medium text-foreground focus:ring-2 focus:ring-primary focus:border-transparent focus:outline-none transition-shadow"
-                  >
-                    <option value="active">Active</option>
-                    <option value="moderate">Moderate</option>
-                    <option value="relaxed">Relaxed</option>
-                  </select>
+                  <CustomDropdown
+                    options={["Active", "Moderate", "Relaxed"]}
+                    value={userPreferences.lifestyle.charAt(0).toUpperCase() + userPreferences.lifestyle.slice(1)}
+                    onChange={val => {
+                      const v = val.toLowerCase();
+                      setUserPreferences({ ...userPreferences, lifestyle: v });
+                    }}
+                    placeholder="Select Lifestyle..."
+                  />
                 </div>
                 <div>
                   <label className="text-xs font-bold text-muted-foreground px-2 uppercase mb-2 block">Household</label>
-                  <select
-                    value={userPreferences.household}
-                    onChange={(e) => setUserPreferences({ ...userPreferences, household: e.target.value })}
-                    className="w-full bg-background/50 border border-border/50 rounded-xl px-2 pr-8 py-2.5 text-sm font-medium text-foreground focus:ring-2 focus:ring-primary focus:border-transparent focus:outline-none transition-shadow"
-                  >
-                    <option value="single">Single</option>
-                    <option value="family">Family (Kids)</option>
-                    <option value="couple">Couple</option>
-                  </select>
+                  <CustomDropdown
+                    options={["Single", "Family (Kids)", "Couple"]}
+                    value={userPreferences.household.charAt(0).toUpperCase() + userPreferences.household.slice(1)}
+                    onChange={val => {
+                      let v = val.toLowerCase();
+                      if (v.startsWith("family")) v = "family";
+                      setUserPreferences({ ...userPreferences, household: v });
+                    }}
+                    placeholder="Select Household..."
+                  />
                 </div>
                 <div>
                   <label className="text-xs font-bold text-muted-foreground uppercase px-2 mb-2 block">Experience</label>
-                  <select
-                    value={userPreferences.experience}
-                    onChange={(e) => setUserPreferences({ ...userPreferences, experience: e.target.value })}
-                    className="w-full bg-background/50 border border-border/50 rounded-xl px-2 pr-8 py-2.5 text-sm font-medium text-foreground focus:ring-2 focus:ring-primary focus:border-transparent focus:outline-none transition-shadow"
-                  >
-                    <option value="beginner">Beginner</option>
-                    <option value="intermediate">Intermediate</option>
-                    <option value="expert">Expert</option>
-                  </select>
+                  <CustomDropdown
+                    options={["Beginner", "Intermediate", "Expert"]}
+                    value={userPreferences.experience.charAt(0).toUpperCase() + userPreferences.experience.slice(1)}
+                    onChange={val => {
+                      setUserPreferences({ ...userPreferences, experience: val.toLowerCase() });
+                    }}
+                    placeholder="Select Experience..."
+                  />
                 </div>
                 <div>
                   <label className="text-xs font-bold text-muted-foreground uppercase px-2 mb-2 block">Space</label>
-                  <select
-                    value={userPreferences.space}
-                    onChange={(e) => setUserPreferences({ ...userPreferences, space: e.target.value })}
-                    className="w-full bg-background/50 border border-border/50 rounded-xl px-2 pr-8 py-2.5 text-sm font-medium text-foreground focus:ring-2 focus:ring-primary focus:border-transparent focus:outline-none transition-shadow"
-                  >
-                    <option value="apartment">Apartment</option>
-                    <option value="house">House w/ Yard</option>
-                    <option value="farm">Farm / Large Land</option>
-                  </select>
+                  <CustomDropdown
+                    options={["Apartment", "House w/ Yard", "Farm / Large Land"]}
+                    value={
+                      userPreferences.space === "house" ? "House w/ Yard" :
+                        userPreferences.space === "farm" ? "Farm / Large Land" :
+                          "Apartment"
+                    }
+                    onChange={val => {
+                      let v = val.toLowerCase();
+                      if (v.startsWith("house")) v = "house";
+                      if (v.startsWith("farm")) v = "farm";
+                      setUserPreferences({ ...userPreferences, space: v });
+                    }}
+                    placeholder="Select Space..."
+                  />
                 </div>
               </div>
 

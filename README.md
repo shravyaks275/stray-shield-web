@@ -44,7 +44,7 @@ A comprehensive full-stack Next.js application connecting citizens with NGOs to 
 - **Error Handling**: Comprehensive validation and error responses
 
 ### Machine Learning
-- **Framework**: TensorFlow.js
+- **Framework**: TensorFlow.js (Hosted securely on Express Backend to avoid Vercel build limits)
 - **Model**: MobileNet + KNN classifier
 - **Purpose**: Dog health assessment (healthy, sick, injured)
 

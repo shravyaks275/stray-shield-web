@@ -34,7 +34,7 @@ Comprehensive end-to-end guide for setting up the Stray Shield application from 
 - **Frontend**: Next.js 15, React 18, Tailwind CSS v4, Framer Motion
 - **Backend**: Express.js, Node.js, JWT authentication, bcrypt
 - **Database**: PostgreSQL 12+, JSON file-based (development)
-- **ML**: TensorFlow.js, MobileNet, KNN classifier
+- **ML**: TensorFlow.js, MobileNet, KNN classifier (Hosted exclusively on Express Backend)
 
 **Deployment:**
 - Frontend: Vercel
